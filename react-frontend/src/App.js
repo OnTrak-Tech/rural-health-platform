@@ -12,7 +12,8 @@ import {
 import { LocalHospital } from '@mui/icons-material';
 
 import Login from './components/Login';
-import Dashboard from './components/Dashboard';
+import PatientDashboard from './components/PatientDashboard';
+import DoctorDashboard from './components/DoctorDashboard';
 import VideoConsultation from './components/VideoConsultation';
 
 function App() {
@@ -65,7 +66,11 @@ function App() {
       </AppBar>
 
       <Container maxWidth="xl" sx={{ mt: 4 }}>
-        {currentView === 'dashboard' && <Dashboard user={user} />}
+        {currentView === 'dashboard' && (
+          user.role === 'doctor' ? 
+            <DoctorDashboard user={user} /> : 
+            <PatientDashboard user={user} />
+        )}
         {currentView === 'consultation' && <VideoConsultation user={user} />}
       </Container>
     </Box>

@@ -17,7 +17,7 @@ import axios from 'axios';
 
 const API_BASE = 'http://localhost:8000/api';
 
-function Dashboard({ user }) {
+function PatientDashboard({ user }) {
   const [profile, setProfile] = useState(null);
   const [consultations, setConsultations] = useState([]);
 
@@ -129,7 +129,7 @@ function Dashboard({ user }) {
       {/* Recent Consultations */}
       <Grid item xs={12}>
         <Paper sx={{ p: 2 }}>
-          <Typography variant="h6" sx={{ mb: 2 }}>Recent Consultations</Typography>
+          <Typography variant="h6" sx={{ mb: 2 }}>My Consultations</Typography>
           <List>
             {consultations.map((consultation) => (
               <ListItem key={consultation.id} divider>
@@ -150,4 +150,4 @@ function Dashboard({ user }) {
   );
 }
 
-export default Dashboard;
+export default PatientDashboard;
