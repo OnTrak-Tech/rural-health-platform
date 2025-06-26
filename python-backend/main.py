@@ -9,7 +9,7 @@ import uvicorn
 import os
 from dotenv import load_dotenv
 
-from app.routes import auth, patients, consultations, files, knowledge
+from app.routes import auth, patients, doctors, consultations, files, knowledge
 from app.middleware.auth_middleware import get_current_user
 from app.database import create_tables
 
@@ -44,6 +44,7 @@ async def root():
 # Routes
 app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
 app.include_router(patients.router, prefix="/api/patients", tags=["patients"])
+app.include_router(doctors.router, prefix="/api/doctors", tags=["doctors"])
 app.include_router(consultations.router, prefix="/api/consultations", tags=["consultations"])
 app.include_router(files.router, prefix="/api/files", tags=["files"])
 app.include_router(knowledge.router, prefix="/api/knowledge", tags=["knowledge"])
