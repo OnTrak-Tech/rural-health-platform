@@ -7,6 +7,7 @@ from slowapi.errors import RateLimitExceeded
 import socketio
 import uvicorn
 import os
+import logging
 from dotenv import load_dotenv
 
 from app.routes import auth, patients, doctors, consultations, files, knowledge
@@ -14,6 +15,16 @@ from app.middleware.auth_middleware import get_current_user
 from app.database import create_tables
 
 load_dotenv()
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler('audit.log'),
+        logging.StreamHandler()
+    ]
+)
 
 # Create database tables
 create_tables()
@@ -52,7 +63,7 @@ app.include_router(knowledge.router, prefix="/api/knowledge", tags=["knowledge"]
 # Socket.IO events
 @sio.event
 async def connect(sid, environ):
-    print(f"Client {sid} connected")
+    logging.getLogger("healthcare_audit").info(f"WebSocket connection: {sid}")
 
 @sio.event
 async def join_consultation(sid, data):

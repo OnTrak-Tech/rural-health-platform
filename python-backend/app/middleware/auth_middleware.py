@@ -3,6 +3,7 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import JWTError, jwt
 import os
 import pyotp
+import logging
 from datetime import datetime
 
 security = HTTPBearer()
@@ -24,6 +25,10 @@ def verify_mfa(token: str, secret: str) -> bool:
 def generate_mfa_secret():
     return pyotp.random_base32()
 
+# Set up proper logger
+logger = logging.getLogger("healthcare_audit")
+logger.setLevel(logging.INFO)
+
 def audit_log(action: str, user_id: int, details: dict = None):
     log_entry = {
         "timestamp": datetime.utcnow().isoformat(),
@@ -31,5 +36,6 @@ def audit_log(action: str, user_id: int, details: dict = None):
         "user_id": user_id,
         "details": details or {}
     }
-    print(f"AUDIT: {log_entry}")
+    # Use proper logging instead of print
+    logger.info(f"AUDIT: {log_entry}")
     return log_entry

@@ -30,7 +30,8 @@ class RegisterRequest(BaseModel):
 
 @router.post("/login")
 async def login(request: LoginRequest, req: Request, db: Session = Depends(get_db)):
-    print(f"Login request: {request}")  # Debug log
+    # Log only non-sensitive data
+    audit_log("LOGIN_ATTEMPT", None, {"email": request.email, "role": request.role})
     
     # Find user in database
     user = db.query(User).filter(User.email == request.email).first()
@@ -103,6 +104,7 @@ async def register_patient(request: RegisterRequest, db: Session = Depends(get_d
     db.add(patient)
     db.commit()
     
+    audit_log("PATIENT_REGISTERED", user.id, {"email": request.email})
     return {"message": "Patient registered", "user": {"id": user.id, "email": user.email, "name": user.name}}
 
 @router.post("/register/doctor")
@@ -124,4 +126,5 @@ async def register_doctor(request: RegisterRequest, db: Session = Depends(get_db
     db.add(user)
     db.commit()
     
+    audit_log("DOCTOR_REGISTERED", user.id, {"email": request.email})
     return {"message": "Doctor registered", "user": {"id": user.id, "email": user.email, "name": user.name}}
