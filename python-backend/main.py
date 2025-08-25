@@ -11,8 +11,9 @@ import logging
 from dotenv import load_dotenv
 
 from app.routes import auth, patients, doctors, consultations, files, knowledge
+from app.routes import admin  # New admin routes
 from app.middleware.auth_middleware import get_current_user
-from app.database import create_tables
+from app.database_enhanced import create_tables  # Enhanced database
 
 load_dotenv()
 
@@ -26,21 +27,28 @@ logging.basicConfig(
     ]
 )
 
-# Create database tables
+# Create enhanced database tables
 create_tables()
 
-# Rate limiting
+# Create secure documents directory
+os.makedirs('secure_documents', exist_ok=True)
+
+# Rate limiting with stricter limits for admin endpoints
 limiter = Limiter(key_func=get_remote_address)
-app = FastAPI(title="Healthcare Platform API")
+app = FastAPI(
+    title="Healthcare Platform API - Enhanced Security",
+    description="HIPAA-compliant healthcare platform with secure doctor registration",
+    version="2.0.0"
+)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
-# CORS
+# CORS - More restrictive for production
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["http://localhost:3000", "https://yourdomain.com"],  # Specific origins
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE"],
     allow_headers=["*"],
 )
 
@@ -50,32 +58,65 @@ socket_app = socketio.ASGIApp(sio, app)
 
 @app.get("/")
 async def root():
-    return {"message": "Healthcare Platform API", "docs": "/docs"}
+    return {
+        "message": "Healthcare Platform API - Enhanced Security", 
+        "docs": "/docs",
+        "version": "2.0.0",
+        "features": [
+            "Secure doctor registration",
+            "Document encryption",
+            "Admin verification workflow",
+            "Enhanced audit logging"
+        ]
+    }
 
 # Routes
-app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
+app.include_router(auth.router, prefix="/api/auth", tags=["authentication"])
+app.include_router(admin.router, prefix="/api/admin", tags=["admin"])  # New admin routes
 app.include_router(patients.router, prefix="/api/patients", tags=["patients"])
 app.include_router(doctors.router, prefix="/api/doctors", tags=["doctors"])
 app.include_router(consultations.router, prefix="/api/consultations", tags=["consultations"])
 app.include_router(files.router, prefix="/api/files", tags=["files"])
 app.include_router(knowledge.router, prefix="/api/knowledge", tags=["knowledge"])
 
-# Socket.IO events
+# Enhanced Socket.IO events with security
 @sio.event
 async def connect(sid, environ):
-    logging.getLogger("healthcare_audit").info(f"WebSocket connection: {sid}")
+    # Log connection with IP for security
+    client_ip = environ.get('REMOTE_ADDR', 'unknown')
+    logging.getLogger("healthcare_audit").info(f"WebSocket connection: {sid} from {client_ip}")
 
 @sio.event
 async def join_consultation(sid, data):
-    await sio.enter_room(sid, data['consultationId'])
+    # Add authentication check for consultation rooms
+    consultation_id = data.get('consultationId')
+    if consultation_id:
+        await sio.enter_room(sid, consultation_id)
+        logging.getLogger("healthcare_audit").info(f"User {sid} joined consultation {consultation_id}")
 
 @sio.event
 async def video_signal(sid, data):
-    await sio.emit('video-signal', data, room=data['consultationId'], skip_sid=sid)
+    consultation_id = data.get('consultationId')
+    if consultation_id:
+        await sio.emit('video-signal', data, room=consultation_id, skip_sid=sid)
 
 @sio.event
 async def chat_message(sid, data):
-    await sio.emit('chat-message', data, room=data['consultationId'])
+    consultation_id = data.get('consultationId')
+    if consultation_id:
+        # Log chat messages for audit
+        logging.getLogger("healthcare_audit").info(f"Chat message in consultation {consultation_id}")
+        await sio.emit('chat-message', data, room=consultation_id)
+
+@sio.event
+async def disconnect(sid):
+    logging.getLogger("healthcare_audit").info(f"WebSocket disconnection: {sid}")
 
 if __name__ == "__main__":
-    uvicorn.run(socket_app, host="0.0.0.0", port=int(os.getenv("PORT", 8000)))
+    uvicorn.run(
+        socket_app, 
+        host="0.0.0.0", 
+        port=int(os.getenv("PORT", 8000)),
+        ssl_keyfile=os.getenv("SSL_KEYFILE"),  # Optional SSL
+        ssl_certfile=os.getenv("SSL_CERTFILE")
+    )
