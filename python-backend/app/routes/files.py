@@ -69,18 +69,19 @@ async def get_patient_files(
 ):
     audit_log("FILE_ACCESS", current_user["id"], {"patientId": patient_id})
     
-    # Query actual files from database
-    files = db.query(MedicalFile).filter(MedicalFile.patient_id == patient_id).all()
+    # Single query with JOIN - eliminates N+1 problem
+    files_with_uploaders = db.query(MedicalFile, User).join(
+        User, MedicalFile.uploaded_by == User.id
+    ).filter(MedicalFile.patient_id == patient_id).all()
     
     result = []
-    for file in files:
-        uploader = db.query(User).filter(User.id == file.uploaded_by).first()
+    for file, uploader in files_with_uploaders:
         result.append({
             "id": file.id,
             "filename": file.original_name,
             "type": file.file_type,
             "uploadDate": file.created_at.isoformat(),
-            "uploadedBy": uploader.name if uploader else "Unknown"
+            "uploadedBy": uploader.name
         })
     
     return result

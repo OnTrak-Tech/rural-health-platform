@@ -36,24 +36,10 @@ async def login(request: LoginRequest, req: Request, db: Session = Depends(get_d
     # Find user in database
     user = db.query(User).filter(User.email == request.email).first()
     
-    # If user doesn't exist, create a test user for demo purposes
+    # User must exist - no auto-creation in production
     if not user:
-        hashed_password = pwd_context.hash(request.password)
-        user = User(
-            email=request.email,
-            password_hash=hashed_password,
-            role=request.role,
-            name="Test User"
-        )
-        db.add(user)
-        db.commit()
-        db.refresh(user)
-        
-        # Create patient profile if role is patient
-        if request.role == "patient":
-            patient = Patient(user_id=user.id, age=30, medical_history=["Diabetes"], allergies=["Penicillin"])
-            db.add(patient)
-            db.commit()
+        audit_log("LOGIN_FAILED", None, {"email": request.email, "reason": "user_not_found"})
+        raise HTTPException(status_code=401, detail="Invalid credentials")
     
     # Verify password
     if not pwd_context.verify(request.password, user.password_hash):
