@@ -1,0 +1,21 @@
+2025-08-25 14:36:43,888 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-08-25T14:36:43.888773', 'action': 'LOGIN_ATTEMPT', 'user_id': None, 'details': {'email': 'doctor@example.com', 'role': 'doctor'}}
+2025-08-25 14:36:44,584 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-08-25T14:36:44.584506', 'action': 'LOGIN_FAILED', 'user_id': None, 'details': {'email': 'doctor@example.com', 'reason': 'user_not_found'}}
+2025-08-25 14:36:53,462 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-08-25T14:36:53.462128', 'action': 'LOGIN_ATTEMPT', 'user_id': None, 'details': {'email': 'doctor@example.com', 'role': 'doctor'}}
+2025-08-25 14:36:53,464 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-08-25T14:36:53.464555', 'action': 'LOGIN_FAILED', 'user_id': None, 'details': {'email': 'doctor@example.com', 'reason': 'user_not_found'}}
+2025-08-25 14:36:55,144 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-08-25T14:36:55.144051', 'action': 'LOGIN_ATTEMPT', 'user_id': None, 'details': {'email': 'doctor@example.com', 'role': 'doctor'}}
+2025-08-25 14:36:55,147 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-08-25T14:36:55.147587', 'action': 'LOGIN_FAILED', 'user_id': None, 'details': {'email': 'doctor@example.com', 'reason': 'user_not_found'}}
+2025-08-25 14:37:31,469 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-08-25T14:37:31.469434', 'action': 'LOGIN_ATTEMPT', 'user_id': None, 'details': {'email': 'patient@example.com', 'role': 'patient'}}
+2025-08-25 14:37:31,471 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-08-25T14:37:31.471464', 'action': 'LOGIN_FAILED', 'user_id': None, 'details': {'email': 'patient@example.com', 'reason': 'user_not_found'}}
+2025-08-25 14:37:32,560 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-08-25T14:37:32.560863', 'action': 'LOGIN_ATTEMPT', 'user_id': None, 'details': {'email': 'patient@example.com', 'role': 'patient'}}
+2025-08-25 14:37:32,562 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-08-25T14:37:32.562754', 'action': 'LOGIN_FAILED', 'user_id': None, 'details': {'email': 'patient@example.com', 'reason': 'user_not_found'}}
+2025-08-25 14:43:32,499 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-08-25T14:43:32.499149', 'action': 'LOGIN_ATTEMPT', 'user_id': None, 'details': {'email': 'doctor@example.com', 'role': 'patient'}}
+2025-08-25 14:43:32,504 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-08-25T14:43:32.504891', 'action': 'LOGIN_FAILED', 'user_id': None, 'details': {'email': 'doctor@example.com', 'reason': 'user_not_found'}}
+2025-08-25 14:43:36,852 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-08-25T14:43:36.852832', 'action': 'LOGIN_ATTEMPT', 'user_id': None, 'details': {'email': 'doctor@example.com', 'role': 'doctor'}}
+2025-08-25 14:43:36,858 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-08-25T14:43:36.858686', 'action': 'LOGIN_FAILED', 'user_id': None, 'details': {'email': 'doctor@example.com', 'reason': 'user_not_found'}}
+2025-08-25 15:52:11,170 - passlib.handlers.bcrypt - WARNING - (trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "/home/ontrak-tech/.venv/rural-health/lib/python3.12/site-packages/passlib/handlers/bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+              ^^^^^^^^^^^^^^^^^
+AttributeError: module 'bcrypt' has no attribute '__about__'
+2025-08-25 15:52:11,784 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-08-25T15:52:11.784754', 'action': 'SUPER_ADMIN_CREATED', 'user_id': 1, 'details': {'email': 'admin@ontrakhealth.com'}}
