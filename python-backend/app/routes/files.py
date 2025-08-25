@@ -3,8 +3,10 @@ from typing import List
 import os
 import shutil
 from datetime import datetime
+from sqlalchemy.orm import Session
 
 from ..middleware.auth_middleware import get_current_user, audit_log
+from ..database import get_db, MedicalFile, User
 
 router = APIRouter()
 
@@ -16,7 +18,8 @@ async def upload_file(
     file: UploadFile = File(...),
     patientId: int = Form(...),
     type: str = Form("general"),
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
 ):
     if not file.filename:
         raise HTTPException(status_code=400, detail="No file provided")
@@ -33,34 +36,51 @@ async def upload_file(
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
     
-    file_data = {
-        "id": timestamp,
-        "filename": filename,
-        "originalName": file.filename,
-        "size": file.size,
+    # Save to database
+    medical_file = MedicalFile(
+        patient_id=patientId,
+        filename=filename,
+        original_name=file.filename,
+        file_type=file_ext,
+        file_size=file.size,
+        uploaded_by=current_user["id"]
+    )
+    db.add(medical_file)
+    db.commit()
+    db.refresh(medical_file)
+    
+    audit_log("FILE_UPLOAD", current_user["id"], {"filename": file.filename, "patientId": patientId})
+    
+    return {
+        "id": medical_file.id,
+        "filename": medical_file.filename,
+        "originalName": medical_file.original_name,
+        "size": medical_file.file_size,
         "uploadedBy": current_user["id"],
         "patientId": patientId,
         "type": type
     }
-    
-    audit_log("FILE_UPLOAD", current_user["id"], {"filename": file.filename, "patientId": patientId})
-    
-    return file_data
 
 @router.get("/patient/{patient_id}")
 async def get_patient_files(
     patient_id: int,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
 ):
     audit_log("FILE_ACCESS", current_user["id"], {"patientId": patient_id})
     
-    files = [
-        {
-            "id": 1,
-            "filename": "xray-chest.jpg",
-            "type": "xray",
-            "uploadDate": "2024-01-15",
-            "uploadedBy": "Dr. Smith"
-        }
-    ]
-    return files
+    # Query actual files from database
+    files = db.query(MedicalFile).filter(MedicalFile.patient_id == patient_id).all()
+    
+    result = []
+    for file in files:
+        uploader = db.query(User).filter(User.id == file.uploaded_by).first()
+        result.append({
+            "id": file.id,
+            "filename": file.original_name,
+            "type": file.file_type,
+            "uploadDate": file.created_at.isoformat(),
+            "uploadedBy": uploader.name if uploader else "Unknown"
+        })
+    
+    return result
