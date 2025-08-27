@@ -3,21 +3,44 @@ from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.orm import Session
 from typing import List, Optional
 import re
+from fastapi import Request
 from cryptography.fernet import Fernet
 import os
 import shutil
 from datetime import datetime
 
 from ..middleware.auth_middleware import get_current_user, audit_log
-from ..database_enhanced import get_db, User, DoctorProfile, VerificationDocument, Admin
+from ..middleware.admin_middleware import require_admin_permission
+from ..database_enhanced import get_db, User, DoctorProfile, VerificationDocument, Admin, Patient
+from app.limits import limiter
 from passlib.context import CryptContext
+import secrets
+from datetime import timedelta
 
 router = APIRouter()
+
+@router.get("/me")
+async def get_admin_me(current_admin: dict = Depends(require_admin_permission("user_management")), db: Session = Depends(get_db)):
+    admin_row = db.query(Admin).join(User).filter(User.id == current_admin["id"]).first()
+    return {
+        "id": current_admin["id"],
+        "email": current_admin.get("email"),
+        "role": current_admin.get("role"),
+        "permissions": admin_row.permissions if admin_row else []
+    }
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # Encryption for sensitive data
-ENCRYPTION_KEY = os.getenv("ENCRYPTION_KEY", Fernet.generate_key())
-cipher_suite = Fernet(ENCRYPTION_KEY)
+
+def get_cipher_suite():
+    key = os.getenv("ENCRYPTION_KEY")
+    if not key:
+        raise RuntimeError("ENCRYPTION_KEY not set")
+    if isinstance(key, str):
+        key_bytes = key.encode()
+    else:
+        key_bytes = key
+    return Fernet(key_bytes)
 
 class SecureDoctorRegistrationRequest(BaseModel):
     # Personal Information
@@ -68,23 +91,103 @@ class SecureDoctorRegistrationRequest(BaseModel):
                 raise ValueError(f'Invalid state code: {state}')
         return [s.upper() for s in v]
 
-def get_current_admin(current_user: dict = Depends(get_current_user), db: Session = Depends(get_db)):
-    """Verify current user is an admin"""
-    admin = db.query(Admin).join(User).filter(User.id == current_user["id"]).first()
-    if not admin:
-        raise HTTPException(status_code=403, detail="Admin access required")
-    return current_user
 
 def encrypt_sensitive_data(data: str) -> str:
     """Encrypt sensitive information"""
-    return cipher_suite.encrypt(data.encode()).decode()
+    return get_cipher_suite().encrypt(data.encode()).decode()
 
 def decrypt_sensitive_data(encrypted_data: str) -> str:
     """Decrypt sensitive information"""
-    return cipher_suite.decrypt(encrypted_data.encode()).decode()
+    return get_cipher_suite().decrypt(encrypted_data.encode()).decode()
+
+@router.post("/register/patient")
+@limiter.limit("10/minute")
+async def admin_register_patient(
+    request: Request,
+    email: str = Form(...),
+    password: str = Form(...),
+    name: str = Form(...),
+    phone: str = Form(None),
+    current_admin: dict = Depends(require_admin_permission("user_management")),
+    db: Session = Depends(get_db)
+):
+    """Admin-only patient registration"""
+    try:
+        if db.query(User).filter(User.email == email).first():
+            raise HTTPException(status_code=400, detail="Email already registered")
+        from passlib.context import CryptContext
+        pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+        user = User(email=email, password_hash=pwd_context.hash(password), role="patient", name=name, phone=phone)
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+        patient = Patient(user_id=user.id, age=0, medical_history=[], allergies=[])
+        db.add(patient)
+        db.commit()
+        audit_log("PATIENT_REGISTERED_ADMIN", current_admin["id"], {"email": email, "patient_user_id": user.id})
+        return {"message": "Patient registered", "user": {"id": user.id, "email": user.email, "name": user.name}}
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Registration failed: {str(e)}")
+
+@router.post("/invite/patient")
+@limiter.limit("20/minute")
+async def send_patient_invite(
+    request: Request,
+    email: str = Form(...),
+    name: str = Form(...),
+    phone: str = Form(None),
+    expires_in_days: int = Form(7),
+    current_admin: dict = Depends(require_admin_permission("user_management")),
+    db: Session = Depends(get_db)
+):
+    """Create or reuse a patient record and send an invite token for password setup."""
+    try:
+        # Create or reuse user
+        user = db.query(User).filter(User.email == email.lower()).first()
+        if not user:
+            user = User(email=email.lower(), password_hash=None, role="patient", name=name, phone=phone, is_active=False)
+            db.add(user)
+            db.commit()
+            db.refresh(user)
+            patient = Patient(user_id=user.id, age=0, medical_history=[], allergies=[])
+            db.add(patient)
+            db.commit()
+        else:
+            if user.role != "patient":
+                raise HTTPException(status_code=400, detail="User exists with a different role")
+        # Create invite
+        from ..database_enhanced import Invite
+        token = secrets.token_urlsafe(32)
+        invite = Invite(
+            token=token,
+            user_id=user.id,
+            role="patient",
+            expires_at=datetime.utcnow() + timedelta(days=expires_in_days),
+            used=False,
+            created_by=current_admin["id"]
+        )
+        db.add(invite)
+        db.commit()
+        audit_log("PATIENT_INVITE_CREATED", current_admin["id"], {"email": email})
+        # TODO: Integrate email provider to send the invite link
+        return {
+            "message": "Invite created",
+            "inviteToken": token,  # Return for dev/testing; DO NOT expose in production responses
+            "inviteLink": f"https://your-frontend-domain.com/accept-invite?token={token}"
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to create invite: {str(e)}")
 
 @router.post("/register/doctor")
+@limiter.limit("5/minute")
 async def secure_doctor_registration(
+    request: Request,
     # Form data
     email: str = Form(...),
     password: str = Form(...),
@@ -106,7 +209,7 @@ async def secure_doctor_registration(
     certification_documents: List[UploadFile] = File(...),
     
     # Admin authorization
-    current_admin: dict = Depends(get_current_admin),
+    current_admin: dict = Depends(require_admin_permission("system_admin")),
     db: Session = Depends(get_db)
 ):
     """Secure doctor registration with document verification"""
@@ -236,8 +339,10 @@ async def secure_doctor_registration(
         raise HTTPException(status_code=500, detail=f"Registration failed: {str(e)}")
 
 @router.get("/doctors/pending")
+@limiter.limit("60/minute")
 async def get_pending_doctors(
-    current_admin: dict = Depends(get_current_admin),
+    request: Request,
+    current_admin: dict = Depends(require_admin_permission("system_admin")),
     db: Session = Depends(get_db)
 ):
     """Get all doctors pending verification"""
@@ -262,9 +367,11 @@ async def get_pending_doctors(
     return result
 
 @router.post("/doctors/{doctor_id}/approve")
+@limiter.limit("30/minute")
 async def approve_doctor(
     doctor_id: int,
-    current_admin: dict = Depends(get_current_admin),
+    request: Request,
+    current_admin: dict = Depends(require_admin_permission("system_admin")),
     db: Session = Depends(get_db)
 ):
     """Approve doctor registration"""
@@ -275,7 +382,8 @@ async def approve_doctor(
     
     # Update verification status
     doctor_profile.verification_status = "verified"
-    doctor_profile.approved_by = current_admin["id"]
+    admin_row = db.query(Admin).join(User).filter(User.id == current_admin["id"]).first()
+    doctor_profile.approved_by = admin_row.id if admin_row else None
     doctor_profile.approved_at = datetime.utcnow()
     
     # Activate user account
@@ -293,10 +401,12 @@ async def approve_doctor(
     return {"message": "Doctor approved and activated", "status": "verified"}
 
 @router.post("/doctors/{doctor_id}/reject")
+@limiter.limit("30/minute")
 async def reject_doctor(
     doctor_id: int,
+    request: Request,
     reason: str = Form(...),
-    current_admin: dict = Depends(get_current_admin),
+    current_admin: dict = Depends(require_admin_permission("system_admin")),
     db: Session = Depends(get_db)
 ):
     """Reject doctor registration"""

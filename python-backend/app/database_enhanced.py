@@ -92,6 +92,7 @@ class Patient(Base):
     age = Column(Integer)
     medical_history = Column(ARRAY(String))
     allergies = Column(ARRAY(String))
+    consent_signed_at = Column(DateTime)
     
     user = relationship("User")
     consultations = relationship("Consultation", back_populates="patient")
@@ -108,7 +109,9 @@ class Consultation(Base):
     prescription = Column(Text)
     notes = Column(Text)
     status = Column(String(50), default="scheduled")
+    client_id = Column(String(64), unique=True, nullable=True)  # idempotency for offline sync
     created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     patient = relationship("Patient", back_populates="consultations")
     doctor = relationship("User")
@@ -139,6 +142,18 @@ class VerificationDocument(Base):
     
     doctor_profile = relationship("DoctorProfile")
     verified_by_admin = relationship("Admin", foreign_keys=[verified_by])
+
+class Invite(Base):
+    __tablename__ = "invites"
+
+    id = Column(Integer, primary_key=True, index=True)
+    token = Column(String(64), unique=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    role = Column(String(50))
+    expires_at = Column(DateTime)
+    used = Column(Boolean, default=False)
+    created_by = Column(Integer, ForeignKey("users.id"))
+    created_at = Column(DateTime, default=datetime.utcnow)
 
 class AuditLog(Base):
     __tablename__ = "audit_logs"

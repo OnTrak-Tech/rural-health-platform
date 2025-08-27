@@ -87,19 +87,6 @@ function AdminDoctorRegistration({ user }) {
     }));
   };
 
-  const handleArrayField = (field, value) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: [...prev[field], value]
-    }));
-  };
-
-  const removeArrayItem = (field, index) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: prev[field].filter((_, i) => i !== index)
-    }));
-  };
 
   const handleFileUpload = (field, files) => {
     if (field === 'certification_documents') {
@@ -178,7 +165,7 @@ function AdminDoctorRegistration({ user }) {
       });
 
       if (response.ok) {
-        const result = await response.json();
+        await response.json();
         setSuccess('Doctor registration submitted successfully for verification');
         // Reset form
         setFormData({
