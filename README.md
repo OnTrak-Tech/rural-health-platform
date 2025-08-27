@@ -30,6 +30,27 @@ docker-compose up
 kubectl apply -f k8s/
 ```
 
+### Super Admin Setup
+
+To enable one-time super admin creation, set a setup key in the backend environment and restart the backend:
+- Local: add SUPER_ADMIN_SETUP_KEY to python-backend/.env
+- Docker Compose: add SUPER_ADMIN_SETUP_KEY to python-backend/.env used by docker-compose
+- Kubernetes: add SUPER_ADMIN_SETUP_KEY to your healthcare-secrets and reference it in the Deployment
+
+Then create the super admin from the web UI at /setup-super-admin, or via curl:
+
+```bash path=null start=null
+curl --fail-with-body -sS -X POST 'http://localhost:8000/api/auth/setup/super-admin' \
+  -F email='admin@example.com' \
+  -F password="$SUPER_ADMIN_PASSWORD" \
+  -F name='Super Admin' \
+  -F setup_key="$SUPER_ADMIN_SETUP_KEY"
+```
+
+Notes:
+- The endpoint is rate-limited to 1 request per minute; wait a minute between retries during development.
+- The request will return 403 if SUPER_ADMIN_SETUP_KEY is not set on the server or does not match your submitted setup_key.
+
 ## API Endpoints
 **Authentication & Session Management:**
 - `POST /api/auth/login` - Multi-factor authentication

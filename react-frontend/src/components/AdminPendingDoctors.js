@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Paper, Typography, List, ListItem, ListItemText, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Alert } from '@mui/material';
-
-const API_BASE = (process.env.REACT_APP_API_BASE || 'http://localhost:8000') + '/api';
+import api from '../api';
 
 export default function AdminPendingDoctors() {
   const [list, setList] = useState([]);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [, setLoading] = useState(false);
   const [rejectId, setRejectId] = useState(null);
   const [rejectReason, setRejectReason] = useState('');
 
@@ -15,10 +14,8 @@ export default function AdminPendingDoctors() {
     setLoading(true);
     setError('');
     try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(`${API_BASE}/admin/doctors/pending`, { headers: { Authorization: `Bearer ${token}` } });
-      if (!res.ok) throw new Error((await res.text()) || 'Failed to load');
-      setList(await res.json());
+      const res = await api.get('/admin/doctors/pending');
+      setList(res.data);
     } catch (e) {
       setError(e.message);
     } finally {
@@ -31,9 +28,7 @@ export default function AdminPendingDoctors() {
   const approve = async (id) => {
     setError(''); setSuccess('');
     try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(`${API_BASE}/admin/doctors/${id}/approve`, { method: 'POST', headers: { Authorization: `Bearer ${token}` } });
-      if (!res.ok) throw new Error((await res.text()) || 'Approve failed');
+      await api.post(`/admin/doctors/${id}/approve`);
       setSuccess('Doctor approved');
       fetchPending();
     } catch (e) {
@@ -47,11 +42,9 @@ export default function AdminPendingDoctors() {
   const doReject = async () => {
     setError(''); setSuccess('');
     try {
-      const token = localStorage.getItem('token');
       const form = new FormData();
       form.append('reason', rejectReason);
-      const res = await fetch(`${API_BASE}/admin/doctors/${rejectId}/reject`, { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: form });
-      if (!res.ok) throw new Error((await res.text()) || 'Reject failed');
+      await api.post(`/admin/doctors/${rejectId}/reject`, form);
       setSuccess('Doctor rejected');
       closeReject();
       fetchPending();

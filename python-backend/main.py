@@ -34,6 +34,10 @@ logging.basicConfig(
     ]
 )
 
+# Warn if missing super admin setup key
+if not os.getenv("SUPER_ADMIN_SETUP_KEY"):
+    logging.warning("SUPER_ADMIN_SETUP_KEY is not set; /api/auth/setup/super-admin will return 403. Set this env var to enable one-time super admin creation.")
+
 # Create enhanced database tables
 create_tables()
 

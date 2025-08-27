@@ -13,9 +13,7 @@ import {
   MenuItem
 } from '@mui/material';
 import { LocalHospital } from '@mui/icons-material';
-import axios from 'axios';
-
-const API_BASE = 'http://localhost:8000/api';
+import api from '../api';
 
 function Login({ onLogin }) {
   const [formData, setFormData] = useState({
@@ -40,7 +38,7 @@ function Login({ onLogin }) {
     setError('');
 
     try {
-      const response = await axios.post(`${API_BASE}/auth/login`, {
+      const response = await api.post('/auth/login', {
         email: formData.email,
         password: formData.password,
         role: formData.role,

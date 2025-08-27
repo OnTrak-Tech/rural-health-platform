@@ -19,6 +19,7 @@ import {
   Divider
 } from '@mui/material';
 import { CloudUpload, Security, VerifiedUser } from '@mui/icons-material';
+import api from '../api';
 
 const SPECIALIZATIONS = [
   'Cardiology', 'Dermatology', 'Emergency Medicine', 'Family Medicine',
@@ -156,32 +157,20 @@ function AdminDoctorRegistration({ user }) {
         submitData.append('certification_documents', doc);
       });
 
-      const response = await fetch('http://localhost:8000/api/admin/register/doctor', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: submitData
-      });
+      await api.post('/admin/register/doctor', submitData);
 
-      if (response.ok) {
-        await response.json();
-        setSuccess('Doctor registration submitted successfully for verification');
-        // Reset form
-        setFormData({
-          email: '', password: '', full_name: '', phone: '',
-          medical_license: '', dea_number: '', npi_number: '', state_license: '',
-          primary_specialization: '', sub_specializations: [], medical_school: '',
-          graduation_year: new Date().getFullYear() - 5, years_of_practice: 0,
-          board_certifications: [], hospital_affiliations: [], practice_address: '',
-          telemedicine_states: []
-        });
-        setDocuments({ license_document: null, certification_documents: [] });
-        setActiveStep(0);
-      } else {
-        const errorData = await response.json();
-        setError(errorData.detail || 'Registration failed');
-      }
+      setSuccess('Doctor registration submitted successfully for verification');
+      // Reset form
+      setFormData({
+        email: '', password: '', full_name: '', phone: '',
+        medical_license: '', dea_number: '', npi_number: '', state_license: '',
+        primary_specialization: '', sub_specializations: [], medical_school: '',
+        graduation_year: new Date().getFullYear() - 5, years_of_practice: 0,
+        board_certifications: [], hospital_affiliations: [], practice_address: '',
+        telemedicine_states: []
+      });
+      setDocuments({ license_document: null, certification_documents: [] });
+      setActiveStep(0);
     } catch (err) {
       setError('Network error. Please try again.');
     } finally {

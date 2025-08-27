@@ -21,16 +21,16 @@ import SuperAdminSetup from './components/SuperAdminSetup';
 import TriageForm from './components/TriageForm';
 import BookConsultation from './components/BookConsultation';
 import OfflineBanner from './components/OfflineBanner';
+import { getToken, setToken as setAuthToken, clearToken, getUser as getStoredUser, setUser as setStoredUser } from './authToken';
 
 function App() {
   const [user, setUser] = useState(null);
   const [adminPerms, setAdminPerms] = useState([]);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const userDataStr = localStorage.getItem('user');
-    if (token && userDataStr) {
-      const u = JSON.parse(userDataStr);
+    const token = getToken();
+    const u = getStoredUser();
+    if (token && u) {
       setUser(u);
       if (u.role === 'admin') {
         fetchAdminPerms(token);
@@ -50,14 +50,14 @@ function App() {
 
   const handleLogin = (userData, token) => {
     setUser(userData);
-    localStorage.setItem('token', token);
-    localStorage.setItem('user', JSON.stringify(userData));
+    setStoredUser(userData);
+    setAuthToken(token);
   };
 
   const handleLogout = () => {
     setUser(null);
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    clearToken();
+    setStoredUser(null);
   };
 
   return (
