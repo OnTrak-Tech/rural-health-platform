@@ -4,7 +4,8 @@ from typing import List
 from sqlalchemy.orm import Session
 
 from ..middleware.auth_middleware import get_current_user
-from ..database import get_db, Patient, User, Consultation
+from ..database_enhanced import get_db, Patient, User, Consultation
+from datetime import datetime
 
 router = APIRouter()
 
@@ -88,3 +89,13 @@ async def get_patient_consultations(
         })
     
     return result
+
+@router.post("/consent/accept")
+async def accept_consent(current_user: dict = Depends(get_current_user), db: Session = Depends(get_db)):
+    patient = db.query(Patient).filter(Patient.user_id == current_user["id"]).first()
+    if not patient:
+        patient = Patient(user_id=current_user["id"], age=0, medical_history=[], allergies=[])
+        db.add(patient)
+    patient.consent_signed_at = datetime.utcnow()
+    db.commit()
+    return {"message": "Consent accepted", "timestamp": patient.consent_signed_at.isoformat()}

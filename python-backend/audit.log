@@ -19,3 +19,14 @@ Traceback (most recent call last):
               ^^^^^^^^^^^^^^^^^
 AttributeError: module 'bcrypt' has no attribute '__about__'
 2025-08-25 15:52:11,784 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-08-25T15:52:11.784754', 'action': 'SUPER_ADMIN_CREATED', 'user_id': 1, 'details': {'email': 'admin@ontrakhealth.com'}}
+2025-08-27 13:50:28,515 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-08-27T13:50:28.515562', 'action': 'LOGIN_ATTEMPT', 'user_id': None, 'details': {'email': 'patient1@example.com', 'role': 'patient'}}
+2025-08-27 13:50:28,749 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-08-27T13:50:28.749611', 'action': 'LOGIN_FAILED', 'user_id': None, 'details': {'email': 'patient1@example.com', 'reason': 'user_not_found'}}
+2025-08-27 13:56:11,569 - passlib.handlers.bcrypt - WARNING - (trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "/home/ontrak-tech/Work & Happiness/rural-health-platform/python-backend/.venv/lib/python3.12/site-packages/passlib/handlers/bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+              ^^^^^^^^^^^^^^^^^
+AttributeError: module 'bcrypt' has no attribute '__about__'
+2025-08-27 13:56:12,088 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-08-27T13:56:12.088685', 'action': 'PATIENT_REGISTERED', 'user_id': 1, 'details': {'email': 'patient1@example.com'}}
+2025-08-27 13:57:04,547 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-08-27T13:57:04.547006', 'action': 'LOGIN_ATTEMPT', 'user_id': None, 'details': {'email': 'patient1@example.com', 'role': 'patient'}}
+2025-08-27 13:57:05,035 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-08-27T13:57:05.035131', 'action': 'LOGIN_SUCCESS', 'user_id': 1, 'details': {'email': 'patient1@example.com'}}

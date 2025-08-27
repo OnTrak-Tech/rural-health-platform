@@ -4,7 +4,6 @@ import {
   Paper,
   Typography,
   TextField,
-  Button,
   List,
   ListItem,
   ListItemText,
@@ -23,6 +22,7 @@ function VideoConsultation({ user }) {
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
   const [localStream, setLocalStream] = useState(null);
+  const localStreamRef = useRef(null);
 
   useEffect(() => {
     // Initialize Socket.IO
@@ -42,8 +42,9 @@ function VideoConsultation({ user }) {
 
     return () => {
       newSocket.close();
-      if (localStream) {
-        localStream.getTracks().forEach(track => track.stop());
+      const stream = localStreamRef.current;
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
       }
     };
   }, []);
@@ -55,6 +56,7 @@ function VideoConsultation({ user }) {
         audio: true 
       });
       setLocalStream(stream);
+      localStreamRef.current = stream;
       if (localVideoRef.current) {
         localVideoRef.current.srcObject = stream;
       }

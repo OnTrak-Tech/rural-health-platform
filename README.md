@@ -21,10 +21,12 @@ python main.py
 # Server runs on: http://localhost:8000
 # API docs: http://localhost:8000/docs
 
-# Docker deployment
-cd docker && docker-compose up
+# Docker deployment (Backend)
+cd python-backend
+cp .env.example .env  # then edit values
+docker-compose up
 
-# Kubernetes
+# Kubernetes (update secrets before applying)
 kubectl apply -f k8s/
 ```
 
