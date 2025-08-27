@@ -13,9 +13,7 @@ import {
   Box
 } from '@mui/material';
 import { Person, VideoCall, FileUpload, LocalHospital } from '@mui/icons-material';
-import axios from 'axios';
-
-const API_BASE = 'http://localhost:8000/api';
+import api from '../api';
 
 function PatientDashboard({ user }) {
   const [profile, setProfile] = useState(null);
@@ -28,10 +26,7 @@ function PatientDashboard({ user }) {
 
   const fetchProfile = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(`${API_BASE}/patients/profile`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.get('/patients/profile');
       setProfile(response.data);
     } catch (error) {
       console.error('Failed to fetch profile:', error);
@@ -40,10 +35,7 @@ function PatientDashboard({ user }) {
 
   const fetchConsultations = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(`${API_BASE}/patients/consultations`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.get('/patients/consultations');
       setConsultations(response.data);
     } catch (error) {
       console.error('Failed to fetch consultations:', error);
@@ -52,13 +44,10 @@ function PatientDashboard({ user }) {
 
   const bookConsultation = async () => {
     try {
-      const token = localStorage.getItem('token');
-      await axios.post(`${API_BASE}/consultations`, {
+      await api.post('/consultations', {
         doctorId: 123,
         date: new Date().toISOString(),
         symptoms: "General checkup"
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
       });
       fetchConsultations();
     } catch (error) {

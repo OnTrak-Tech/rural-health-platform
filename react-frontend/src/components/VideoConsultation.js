@@ -12,6 +12,7 @@ import {
 } from '@mui/material';
 import { Send, Videocam, VideocamOff, Mic, MicOff } from '@mui/icons-material';
 import io from 'socket.io-client';
+import { SOCKET_BASE } from '../config';
 
 function VideoConsultation({ user }) {
   const [socket, setSocket] = useState(null);
@@ -26,7 +27,7 @@ function VideoConsultation({ user }) {
 
   useEffect(() => {
     // Initialize Socket.IO
-    const newSocket = io('http://localhost:8000');
+    const newSocket = io(SOCKET_BASE);
     setSocket(newSocket);
 
     // Join consultation room

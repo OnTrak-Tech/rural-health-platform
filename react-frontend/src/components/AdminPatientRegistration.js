@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Box, Paper, TextField, Button, Typography, Alert } from '@mui/material';
-
-const API_BASE = (process.env.REACT_APP_API_BASE || 'http://localhost:8000') + '/api';
+import api from '../api';
 
 export default function AdminPatientRegistration() {
   const [form, setForm] = useState({ email: '', password: '', name: '', phone: '' });
@@ -15,23 +14,13 @@ export default function AdminPatientRegistration() {
     setSuccess('');
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
       const body = new FormData();
       body.append('email', form.email);
       body.append('password', form.password);
       body.append('name', form.name);
       if (form.phone) body.append('phone', form.phone);
 
-      const res = await fetch(`${API_BASE}/admin/register/patient`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-        body
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.detail || 'Registration failed');
-      }
-      await res.json();
+      await api.post('/admin/register/patient', body);
       setSuccess('Patient registered successfully');
       setForm({ email: '', password: '', name: '', phone: '' });
     } catch (e) {

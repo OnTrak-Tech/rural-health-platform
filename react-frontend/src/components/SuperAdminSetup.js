@@ -1,34 +1,33 @@
 import React, { useState } from 'react';
 import { Container, Paper, TextField, Button, Typography, Alert } from '@mui/material';
+import api from '../api';
 
 const SuperAdminSetup = () => {
   const [formData, setFormData] = useState({
     setup_key: '',
     email: '',
     password: '',
-    full_name: ''
+    name: ''
   });
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setMessage('');
+    setError('');
     try {
-      const response = await fetch('/api/auth/setup-super-admin', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      });
+      const fd = new FormData();
+      fd.set('setup_key', formData.setup_key);
+      fd.set('email', formData.email);
+      fd.set('password', formData.password);
+      fd.set('name', formData.name);
 
-      if (response.ok) {
-        setMessage('Super admin created successfully! You can now login.');
-        setError('');
-      } else {
-        const data = await response.json();
-        setError(data.detail || 'Setup failed');
-      }
+      await api.post('/auth/setup/super-admin', fd);
+      setMessage('Super admin created successfully! You can now login.');
     } catch (err) {
-      setError('Network error');
+      const detail = err?.response?.data?.detail || err.message || 'Setup failed';
+      setError(detail);
     }
   };
 
@@ -71,8 +70,8 @@ const SuperAdminSetup = () => {
           <TextField
             fullWidth
             label="Full Name"
-            value={formData.full_name}
-            onChange={(e) => setFormData({...formData, full_name: e.target.value})}
+            value={formData.name}
+            onChange={(e) => setFormData({...formData, name: e.target.value})}
             margin="normal"
             required
           />

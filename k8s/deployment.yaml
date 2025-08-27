@@ -35,6 +35,11 @@ spec:
             secretKeyRef:
               name: healthcare-secrets
               key: ENCRYPTION_KEY
+        - name: SUPER_ADMIN_SETUP_KEY
+          valueFrom:
+            secretKeyRef:
+              name: healthcare-secrets
+              key: SUPER_ADMIN_SETUP_KEY
         - name: ALLOW_ORIGINS
           value: "https://yourdomain.com,http://localhost:3000"
 ---
