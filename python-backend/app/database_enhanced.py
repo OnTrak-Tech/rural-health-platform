@@ -126,6 +126,7 @@ class MedicalFile(Base):
     file_type = Column(String(10))
     file_size = Column(Integer)
     uploaded_by = Column(Integer, ForeignKey("users.id"))
+    ocr_text = Column(Text)
     created_at = Column(DateTime, default=datetime.utcnow)
 
 class VerificationDocument(Base):

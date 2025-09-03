@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Grid,
   Paper,
@@ -10,14 +10,21 @@ import {
   ListItem,
   ListItemText,
   Chip,
-  Box
+  Box,
+  Alert
 } from '@mui/material';
 import { Person, VideoCall, FileUpload, LocalHospital } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 import api from '../api';
 
 function PatientDashboard({ user }) {
+  const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
   const [consultations, setConsultations] = useState([]);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState('');
+  const [uploadSuccess, setUploadSuccess] = useState('');
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     fetchProfile();
@@ -42,16 +49,50 @@ function PatientDashboard({ user }) {
     }
   };
 
-  const bookConsultation = async () => {
+  const bookConsultation = () => {
+    navigate('/book');
+  };
+
+  const handleUploadClick = () => {
+    setUploadError('');
+    setUploadSuccess('');
+    if (fileInputRef.current) fileInputRef.current.click();
+  };
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files && e.target.files[0];
+    e.target.value = '';
+    if (!file) return;
+    if (!profile?.patientId) {
+      setUploadError('Cannot determine patient ID. Please refresh and try again.');
+      return;
+    }
+    setUploading(true);
+    setUploadError('');
+    setUploadSuccess('');
     try {
-      await api.post('/consultations', {
-        doctorId: 123,
-        date: new Date().toISOString(),
-        symptoms: "General checkup"
-      });
-      fetchConsultations();
-    } catch (error) {
-      console.error('Failed to book consultation:', error);
+      const form = new FormData();
+      form.append('file', file);
+      form.append('patientId', String(profile.patientId));
+      if (profile.hospitalId) {
+        form.append('hospitalId', String(profile.hospitalId));
+      }
+      form.append('type', 'general');
+      const res = await api.post('/files/upload', form);
+      if (res?.data?.id) {
+        const ocrInfo = res.data.hasOcr ? ' (Text extracted)' : '';
+        setUploadSuccess(`Uploaded ${file.name} successfully${ocrInfo}`);
+        if (res.data.ocrText) {
+          console.log('OCR Text:', res.data.ocrText.substring(0, 200) + '...');
+        }
+      } else {
+        setUploadSuccess('File uploaded');
+      }
+    } catch (err) {
+      const msg = err?.response?.data?.detail || err.message || 'Upload failed';
+      setUploadError(msg);
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -95,6 +136,8 @@ function PatientDashboard({ user }) {
               <LocalHospital sx={{ mr: 1 }} />
               <Typography variant="h6">Quick Actions</Typography>
             </Box>
+            {uploadSuccess && <Alert severity="success" sx={{ mb: 2 }}>{uploadSuccess}</Alert>}
+            {uploadError && <Alert severity="error" sx={{ mb: 2 }}>{uploadError}</Alert>}
             <Button
               variant="contained"
               startIcon={<VideoCall />}
@@ -104,12 +147,21 @@ function PatientDashboard({ user }) {
             >
               Book Video Consultation
             </Button>
+            <input
+              type="file"
+              accept=".jpg,.jpeg,.png,.pdf,.dcm"
+              ref={fileInputRef}
+              style={{ display: 'none' }}
+              onChange={handleFileChange}
+            />
             <Button
               variant="outlined"
               startIcon={<FileUpload />}
               fullWidth
+              onClick={handleUploadClick}
+              disabled={uploading}
             >
-              Upload Medical Files
+              {uploading ? 'Uploading...' : 'Upload Medical Files'}
             </Button>
           </CardContent>
         </Card>
@@ -118,7 +170,7 @@ function PatientDashboard({ user }) {
       {/* Recent Consultations */}
       <Grid item xs={12}>
         <Paper sx={{ p: 2 }}>
-          <Typography variant="h6" sx={{ mb: 2 }}>My Consultations</Typography>
+          <Typography variant="h6" sx={{ mb: 2 }}>Patient Consultations</Typography>
           <List>
             {consultations.map((consultation) => (
               <ListItem key={consultation.id} divider>

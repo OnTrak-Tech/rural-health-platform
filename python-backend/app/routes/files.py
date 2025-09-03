@@ -13,6 +13,7 @@ except Exception:
 
 from ..middleware.auth_middleware import get_current_user, audit_log
 from ..database_enhanced import get_db, MedicalFile, User, Patient
+from ..services.ocr_service import OCRService
 
 router = APIRouter()
 
@@ -69,6 +70,11 @@ async def upload_file(
             # If MIME detection fails, proceed but prefer conservative handling
             pass
     
+    # Extract text using OCR
+    ocr_text = None
+    if file_ext in [".jpg", ".jpeg", ".png", ".pdf"]:
+        ocr_text = OCRService.extract_text_from_file(file_path)
+    
     # Save to database
     medical_file = MedicalFile(
         patient_id=patientId,
@@ -76,7 +82,8 @@ async def upload_file(
         original_name=original_name,
         file_type=file_ext,
         file_size=file_size if file_size is not None else 0,
-        uploaded_by=current_user["id"]
+        uploaded_by=current_user["id"],
+        ocr_text=ocr_text
     )
     db.add(medical_file)
     db.commit()
@@ -91,7 +98,9 @@ async def upload_file(
         "size": medical_file.file_size,
         "uploadedBy": current_user["id"],
         "patientId": patientId,
-        "type": type
+        "type": type,
+        "ocrText": ocr_text,
+        "hasOcr": bool(ocr_text)
     }
 
 @router.get("/patient/{patient_id}")

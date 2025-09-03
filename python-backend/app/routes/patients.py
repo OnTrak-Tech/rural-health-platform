@@ -33,6 +33,8 @@ async def get_patient_profile(
     
     return {
         "id": user.id,
+        "patientId": patient.id,
+        "hospitalId": patient.hospital_id,
         "name": user.name,
         "age": patient.age,
         "medicalHistory": patient.medical_history or [],

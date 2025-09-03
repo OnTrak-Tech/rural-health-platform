@@ -122,7 +122,7 @@ function Login({ onLogin }) {
                 label="Role"
                 onChange={handleChange}
               >
-                <MenuItem value="patient">Patient</MenuItem>
+                <MenuItem value="patient">Health Practitioner</MenuItem>
                 <MenuItem value="doctor">Doctor</MenuItem>
               </Select>
             </FormControl>
