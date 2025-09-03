@@ -21,7 +21,7 @@ export default function AdminPatientRegistration() {
       if (form.phone) body.append('phone', form.phone);
 
       await api.post('/admin/register/patient', body);
-      setSuccess('Patient registered successfully');
+      setSuccess('Health Practitioner registered successfully');
       setForm({ email: '', password: '', name: '', phone: '' });
     } catch (e) {
       setError(e.message);
@@ -33,16 +33,16 @@ export default function AdminPatientRegistration() {
   return (
     <Box sx={{ maxWidth: 600, mx: 'auto', p: 2 }}>
       <Paper sx={{ p: 3 }}>
-        <Typography variant="h5" gutterBottom>Admin: Register Patient</Typography>
+        <Typography variant="h5" gutterBottom>Admin: Register Health Practitioner</Typography>
         {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
         {success && <Alert severity="success" sx={{ mb: 2 }}>{success}</Alert>}
         <Box component="form" onSubmit={submit}>
-          <TextField fullWidth label="Patient Email" type="email" value={form.email} onChange={e=>setForm(f=>({...f, email:e.target.value}))} sx={{ mb: 2 }} required />
+          <TextField fullWidth label="Health Practitioner Email" type="email" value={form.email} onChange={e=>setForm(f=>({...f, email:e.target.value}))} sx={{ mb: 2 }} required />
           <TextField fullWidth label="Password" type="password" value={form.password} onChange={e=>setForm(f=>({...f, password:e.target.value}))} sx={{ mb: 2 }} required />
           <TextField fullWidth label="Full Name" value={form.name} onChange={e=>setForm(f=>({...f, name:e.target.value}))} sx={{ mb: 2 }} required />
           <TextField fullWidth label="Phone (optional)" value={form.phone} onChange={e=>setForm(f=>({...f, phone:e.target.value}))} sx={{ mb: 2 }} />
           <Button type="submit" variant="contained" disabled={loading}>
-            {loading ? 'Registering...' : 'Register Patient'}
+            {loading ? 'Registering...' : 'Register Health Practitioner'}
           </Button>
         </Box>
       </Paper>

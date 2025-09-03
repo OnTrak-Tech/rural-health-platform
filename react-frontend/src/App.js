@@ -74,7 +74,7 @@ function App() {
                 {user.role === 'admin' && (
                   <>
                     <Button color="inherit" component={Link} to="/admin/register-patient">
-                      Register Patient
+                      Register Health Practitioner
                     </Button>
                     {adminPerms.includes('system_admin') && (
                       <>

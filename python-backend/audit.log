@@ -42,3 +42,13 @@ AttributeError: module 'bcrypt' has no attribute '__about__'
 2025-08-27 19:21:12,348 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-08-27T19:21:12.348681', 'action': 'SUPER_ADMIN_SETUP_FAILED', 'user_id': None, 'details': {'email': 'superadmin@example.com', 'reason': 'invalid_key'}}
 2025-08-27 19:21:57,302 - slowapi - WARNING - ratelimit 1 per 1 minute (127.0.0.1) exceeded at endpoint: /api/auth/setup/super-admin
 2025-08-27 19:24:24,097 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-08-27T19:24:24.097882', 'action': 'SUPER_ADMIN_SETUP_FAILED', 'user_id': None, 'details': {'email': 'superadmin@example.com', 'reason': 'invalid_key'}}
+2025-09-03 15:14:55,786 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-03T15:14:55.786500', 'action': 'LOGIN_ATTEMPT', 'user_id': None, 'details': {'email': 'patient1@example.com', 'role': 'patient'}}
+2025-09-03 15:14:56,388 - passlib.handlers.bcrypt - WARNING - (trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "/home/ontrak-tech/Work & Happiness/rural-health-platform/python-backend/.venv/lib/python3.12/site-packages/passlib/handlers/bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+              ^^^^^^^^^^^^^^^^^
+AttributeError: module 'bcrypt' has no attribute '__about__'
+2025-09-03 15:14:56,860 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-03T15:14:56.860176', 'action': 'LOGIN_SUCCESS', 'user_id': 1, 'details': {'email': 'patient1@example.com'}}
+2025-09-03 15:25:21,999 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-03T15:25:21.999332', 'action': 'LOGIN_ATTEMPT', 'user_id': None, 'details': {'email': 'patient1@example.com', 'role': 'patient'}}
+2025-09-03 15:25:22,335 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-03T15:25:22.335346', 'action': 'LOGIN_SUCCESS', 'user_id': 1, 'details': {'email': 'patient1@example.com'}}

@@ -3,7 +3,8 @@ from typing import List, Optional
 from sqlalchemy.orm import Session
 
 from app.middleware.auth_middleware import get_current_user
-from app.database_enhanced import get_db, User, DoctorProfile
+from app.database_enhanced import get_db, User, DoctorProfile, Patient
+from ..services.ai_recommendation import AIRecommendationService
 
 router = APIRouter()
 
@@ -95,3 +96,27 @@ async def match_specialist(
             "telemedicineStates": profile.telemedicine_states,
         })
     return results
+
+@router.get("/ai-recommend")
+async def ai_recommend_doctors(
+    symptoms: Optional[str] = Query(None, description="Patient symptoms"),
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+) -> List[dict]:
+    """AI-powered doctor recommendations based on patient profile and symptoms"""
+    
+    # Get patient data
+    patient = db.query(Patient).filter(Patient.user_id == current_user["id"]).first()
+    if not patient:
+        raise HTTPException(status_code=404, detail="Patient profile not found")
+    
+    # Use AI service to recommend doctors
+    recommendations = AIRecommendationService.recommend_doctors(
+        db=db,
+        patient_symptoms=symptoms or "",
+        patient_medical_history=patient.medical_history or [],
+        patient_id=patient.id,
+        limit=5
+    )
+    
+    return recommendations

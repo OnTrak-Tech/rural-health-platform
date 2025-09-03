@@ -13,6 +13,7 @@ from dotenv import load_dotenv
 from app.routes import auth, patients, doctors, consultations, files, knowledge
 from app.routes import admin  # New admin routes
 from app.routes import triage, sync  # New features
+from app.routes import ocr  # OCR functionality
 from app.middleware.auth_middleware import get_current_user
 from app.database_enhanced import create_tables  # Enhanced database
 
@@ -92,6 +93,7 @@ app.include_router(files.router, prefix="/api/files", tags=["files"])
 app.include_router(knowledge.router, prefix="/api/knowledge", tags=["knowledge"])
 app.include_router(triage.router, prefix="/api/triage", tags=["triage"])  # AI-assisted triage
 app.include_router(sync.router, prefix="/api/sync", tags=["sync"])  # Offline-first sync
+app.include_router(ocr.router, prefix="/api/ocr", tags=["ocr"])  # OCR text extraction
 
 # Enhanced Socket.IO events with security
 @sio.event
