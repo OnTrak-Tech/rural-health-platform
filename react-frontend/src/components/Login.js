@@ -124,6 +124,7 @@ function Login({ onLogin }) {
               >
                 <MenuItem value="patient">Health Practitioner</MenuItem>
                 <MenuItem value="doctor">Doctor</MenuItem>
+                <MenuItem value="admin">Administrator</MenuItem>
               </Select>
             </FormControl>
             <TextField

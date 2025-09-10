@@ -17,7 +17,7 @@ import { Person, VideoCall, FileUpload, LocalHospital } from '@mui/icons-materia
 import { useNavigate } from 'react-router-dom';
 import api from '../api';
 
-function PatientDashboard({ user }) {
+function HealthPractitionerDashboard({ user }) {
   const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
   const [consultations, setConsultations] = useState([]);
@@ -104,7 +104,7 @@ function PatientDashboard({ user }) {
           <CardContent>
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
               <Person sx={{ mr: 1 }} />
-              <Typography variant="h6">Patient Profile</Typography>
+              <Typography variant="h6">Health Practitioner Profile</Typography>
             </Box>
             {profile && (
               <>
@@ -170,7 +170,7 @@ function PatientDashboard({ user }) {
       {/* Recent Consultations */}
       <Grid item xs={12}>
         <Paper sx={{ p: 2 }}>
-          <Typography variant="h6" sx={{ mb: 2 }}>Patient Consultations</Typography>
+          <Typography variant="h6" sx={{ mb: 2 }}>My Consultations</Typography>
           <List>
             {consultations.map((consultation) => (
               <ListItem key={consultation.id} divider>
@@ -191,4 +191,4 @@ function PatientDashboard({ user }) {
   );
 }
 
-export default PatientDashboard;
+export default HealthPractitionerDashboard;

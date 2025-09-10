@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { Container, Paper, TextField, Button, Typography, Alert } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 import api from '../api';
 
 const SuperAdminSetup = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     setup_key: '',
     email: '',
@@ -24,7 +26,11 @@ const SuperAdminSetup = () => {
       fd.set('name', formData.name);
 
       await api.post('/auth/setup/super-admin', fd);
-      setMessage('Super admin created successfully! You can now login.');
+      setMessage('Super admin created successfully! Redirecting to login...');
+      
+      setTimeout(() => {
+        navigate('/login');
+      }, 2000);
     } catch (err) {
       const detail = err?.response?.data?.detail || err.message || 'Setup failed';
       setError(detail);

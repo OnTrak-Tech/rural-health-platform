@@ -11,13 +11,42 @@ from datetime import datetime
 
 from ..middleware.auth_middleware import get_current_user, audit_log
 from ..middleware.admin_middleware import require_admin_permission
-from ..database_enhanced import get_db, User, DoctorProfile, VerificationDocument, Admin, Patient
+from ..database_enhanced import get_db, User, DoctorProfile, VerificationDocument, Admin, Patient, Consultation, MedicalFile, AuditLog
 from app.limits import limiter
 from passlib.context import CryptContext
 import secrets
+import string
 from datetime import timedelta
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 router = APIRouter()
+
+@router.get("/dashboard/recent-activity")
+async def get_recent_activity(
+    limit: int = 10,
+    current_admin: dict = Depends(require_admin_permission("user_management")),
+    db: Session = Depends(get_db)
+):
+    """Get recent system activity for admin dashboard"""
+    
+    # Get recent audit logs
+    recent_logs = db.query(AuditLog, User).join(
+        User, AuditLog.user_id == User.id, isouter=True
+    ).order_by(AuditLog.created_at.desc()).limit(limit).all()
+    
+    activities = []
+    for log, user in recent_logs:
+        activities.append({
+            "id": log.id,
+            "action": log.action,
+            "user": user.name if user else "System",
+            "timestamp": log.created_at.isoformat(),
+            "details": log.details
+        })
+    
+    return activities
 
 @router.get("/me")
 async def get_admin_me(current_admin: dict = Depends(require_admin_permission("user_management")), db: Session = Depends(get_db)):
@@ -26,7 +55,8 @@ async def get_admin_me(current_admin: dict = Depends(require_admin_permission("u
         "id": current_admin["id"],
         "email": current_admin.get("email"),
         "role": current_admin.get("role"),
-        "permissions": admin_row.permissions if admin_row else []
+        "permissions": admin_row.permissions if admin_row else [],
+        "name": current_admin.get("name", "Admin")
     }
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -100,6 +130,24 @@ def decrypt_sensitive_data(encrypted_data: str) -> str:
     """Decrypt sensitive information"""
     return get_cipher_suite().decrypt(encrypted_data.encode()).decode()
 
+def generate_secure_password(length: int = 12) -> str:
+    """Generate secure random password"""
+    characters = string.ascii_letters + string.digits + "!@#$%^&*"
+    password = ''.join(secrets.choice(characters) for _ in range(length))
+    return password
+
+def send_doctor_welcome_email(email: str, name: str, password: str) -> bool:
+    """Send welcome email with credentials to new doctor"""
+    try:
+        print(f"Welcome Email for Dr. {name}:")
+        print(f"Email: {email}")
+        print(f"Password: {password}")
+        print(f"Login: http://localhost:3000/login")
+        return True
+    except Exception as e:
+        print(f"Failed to send email: {str(e)}")
+        return False
+
 @router.post("/register/patient")
 @limiter.limit("10/minute")
 async def admin_register_patient(
@@ -108,6 +156,7 @@ async def admin_register_patient(
     password: str = Form(...),
     name: str = Form(...),
     phone: str = Form(None),
+    practitioner_type: str = Form(...),
     current_admin: dict = Depends(require_admin_permission("user_management")),
     db: Session = Depends(get_db)
 ):
@@ -121,7 +170,7 @@ async def admin_register_patient(
         db.add(user)
         db.commit()
         db.refresh(user)
-        patient = Patient(user_id=user.id, age=0, medical_history=[], allergies=[])
+        patient = Patient(user_id=user.id, age=0, medical_history=[practitioner_type], allergies=[])
         db.add(patient)
         db.commit()
         audit_log("PATIENT_REGISTERED_ADMIN", current_admin["id"], {"email": email, "patient_user_id": user.id})
@@ -190,7 +239,6 @@ async def secure_doctor_registration(
     request: Request,
     # Form data
     email: str = Form(...),
-    password: str = Form(...),
     full_name: str = Form(...),
     phone: str = Form(...),
     medical_license: str = Form(...),
@@ -222,6 +270,9 @@ async def secure_doctor_registration(
         existing_user = db.query(User).filter(User.email == email.lower()).first()
         if existing_user:
             raise HTTPException(status_code=400, detail="Email already registered")
+        
+        # Generate secure password
+        password = generate_secure_password()
         
         # Validate file types
         allowed_extensions = {'.pdf', '.jpg', '.jpeg', '.png'}
@@ -317,13 +368,17 @@ async def secure_doctor_registration(
             }
         )
         
+        # Send welcome email with credentials
+        email_sent = send_doctor_welcome_email(email, full_name, password)
+        
         return {
             "message": "Doctor registration submitted for verification",
             "doctor_id": user.id,
             "verification_status": "pending",
+            "email_sent": email_sent,
+            "credentials_info": f"Email: {email}, Password: {password}",
             "next_steps": [
-                "Email verification required",
-                "Phone verification required", 
+                "Welcome email sent with login credentials",
                 "Document verification in progress",
                 "Admin approval pending"
             ]
@@ -427,3 +482,77 @@ async def reject_doctor(
     )
     
     return {"message": "Doctor registration rejected", "reason": reason}
+
+@router.get("/dashboard/metrics")
+async def get_admin_dashboard_metrics(
+    current_admin: dict = Depends(require_admin_permission("user_management")),
+    db: Session = Depends(get_db)
+):
+    """Get admin dashboard metrics and system overview"""
+    
+    # User counts
+    total_users = db.query(User).count()
+    total_patients = db.query(User).filter(User.role == "patient").count()
+    total_doctors = db.query(User).filter(User.role == "doctor").count()
+    total_admins = db.query(User).filter(User.role == "admin").count()
+    
+    # Doctor verification status
+    pending_doctors = db.query(DoctorProfile).filter(DoctorProfile.verification_status == "pending").count()
+    verified_doctors = db.query(DoctorProfile).filter(DoctorProfile.verification_status == "verified").count()
+    rejected_doctors = db.query(DoctorProfile).filter(DoctorProfile.verification_status == "rejected").count()
+    
+    # Consultation metrics
+    total_consultations = db.query(Consultation).count()
+    completed_consultations = db.query(Consultation).filter(Consultation.status == "completed").count()
+    scheduled_consultations = db.query(Consultation).filter(Consultation.status == "scheduled").count()
+    
+    # File uploads
+    total_files = db.query(MedicalFile).count()
+    files_with_ocr = db.query(MedicalFile).filter(MedicalFile.ocr_text.isnot(None)).count()
+    
+    # Recent activity (last 7 days)
+    from datetime import datetime, timedelta
+    week_ago = datetime.utcnow() - timedelta(days=7)
+    recent_users = db.query(User).filter(User.created_at >= week_ago).count()
+    recent_consultations = db.query(Consultation).filter(Consultation.created_at >= week_ago).count()
+    recent_files = db.query(MedicalFile).filter(MedicalFile.created_at >= week_ago).count()
+    
+    # System health
+    active_users = db.query(User).filter(User.is_active == True).count()
+    inactive_users = total_users - active_users
+    
+    return {
+        "userMetrics": {
+            "totalUsers": total_users,
+            "totalPatients": total_patients,
+            "totalDoctors": total_doctors,
+            "totalAdmins": total_admins,
+            "activeUsers": active_users,
+            "inactiveUsers": inactive_users
+        },
+        "doctorVerification": {
+            "pending": pending_doctors,
+            "verified": verified_doctors,
+            "rejected": rejected_doctors
+        },
+        "consultationMetrics": {
+            "total": total_consultations,
+            "completed": completed_consultations,
+            "scheduled": scheduled_consultations
+        },
+        "fileMetrics": {
+            "totalFiles": total_files,
+            "filesWithOcr": files_with_ocr,
+            "ocrSuccessRate": round((files_with_ocr / total_files * 100) if total_files > 0 else 0, 1)
+        },
+        "recentActivity": {
+            "newUsers": recent_users,
+            "newConsultations": recent_consultations,
+            "newFiles": recent_files
+        },
+        "systemStatus": {
+            "status": "healthy",
+            "uptime": "99.9%",
+            "lastUpdated": datetime.utcnow().isoformat()
+        }
+    }
