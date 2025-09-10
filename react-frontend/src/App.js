@@ -20,6 +20,7 @@ import DoctorDashboard from './components/DoctorDashboard';
 import PendingDoctorDashboard from './components/PendingDoctorDashboard';
 import DoctorRegistration from './components/DoctorRegistration';
 import VideoConsultation from './components/VideoConsultation';
+import MyConsultations from './components/MyConsultations';
 import SuperAdminSetup from './components/SuperAdminSetup';
 import TriageForm from './components/TriageForm';
 import BookConsultation from './components/BookConsultation';
@@ -97,8 +98,8 @@ function App() {
                 </Button>
                 {user.role !== 'admin' && (
                   <>
-                    <Button color="inherit" component={Link} to="/consultation">
-                      Consultation
+                    <Button color="inherit" component={Link} to="/consultations">
+                      My Consultations
                     </Button>
                     <Button color="inherit" component={Link} to="/triage">
                       Triage
@@ -134,7 +135,8 @@ function App() {
                   user.role === 'admin' ? <AdminDashboard user={user} /> :
                   <HealthPractitionerDashboard user={user} />
                 } />
-                <Route path="/consultation" element={<VideoConsultation user={user} />} />
+                <Route path="/consultations" element={<MyConsultations user={user} />} />
+                <Route path="/consultation/:consultationId" element={<VideoConsultation user={user} />} />
                 {user.role === 'admin' && (
                   <>
                     <Route path="/admin/register-patient" element={<AdminPatientRegistration />} />

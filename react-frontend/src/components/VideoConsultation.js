@@ -8,47 +8,75 @@ import {
   ListItem,
   ListItemText,
   Box,
-  IconButton
+  IconButton,
+  Alert
 } from '@mui/material';
 import { Send, Videocam, VideocamOff, Mic, MicOff } from '@mui/icons-material';
+import { useParams, useNavigate } from 'react-router-dom';
 import io from 'socket.io-client';
 import { SOCKET_BASE } from '../config';
+import { getToken } from '../authToken';
 
 function VideoConsultation({ user }) {
+  const { consultationId } = useParams();
+  const navigate = useNavigate();
   const [socket, setSocket] = useState(null);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [isVideoOn, setIsVideoOn] = useState(true);
   const [isAudioOn, setIsAudioOn] = useState(true);
+  const [consultation, setConsultation] = useState(null);
+  const [error, setError] = useState('');
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
   const [localStream, setLocalStream] = useState(null);
   const localStreamRef = useRef(null);
 
   useEffect(() => {
-    // Initialize Socket.IO
-    const newSocket = io(SOCKET_BASE);
-    setSocket(newSocket);
-
-    // Join consultation room
-    newSocket.emit('join-consultation', { consultationId: 'room_123' });
-
-    // Listen for chat messages
-    newSocket.on('chat-message', (data) => {
-      setMessages(prev => [...prev, data]);
-    });
-
-    // Initialize video
+    if (!consultationId) {
+      setError('No consultation ID provided');
+      return;
+    }
+    
+    fetchConsultation();
+    initializeSocket();
     initializeVideo();
 
     return () => {
-      newSocket.close();
+      if (socket) socket.close();
       const stream = localStreamRef.current;
       if (stream) {
         stream.getTracks().forEach(track => track.stop());
       }
     };
-  }, []);
+  }, [consultationId]);
+
+  const fetchConsultation = async () => {
+    try {
+      const token = getToken();
+      const res = await fetch(`${process.env.REACT_APP_API_BASE || 'http://localhost:8000'}/api/consultations/${consultationId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (!res.ok) throw new Error('Consultation not found');
+      const data = await res.json();
+      setConsultation(data);
+    } catch (e) {
+      setError(e.message);
+    }
+  };
+
+  const initializeSocket = () => {
+    const newSocket = io(SOCKET_BASE);
+    setSocket(newSocket);
+
+    // Join specific consultation room
+    newSocket.emit('join-consultation', { consultationId });
+
+    // Listen for chat messages
+    newSocket.on('chat-message', (data) => {
+      setMessages(prev => [...prev, data]);
+    });
+  };
 
   const initializeVideo = async () => {
     try {
@@ -71,7 +99,7 @@ function VideoConsultation({ user }) {
       const messageData = {
         text: newMessage,
         sender: user.email,
-        consultationId: 'room_123',
+        consultationId,
         timestamp: new Date().toLocaleTimeString()
       };
       
@@ -106,7 +134,15 @@ function VideoConsultation({ user }) {
       {/* Video Section */}
       <Grid item xs={12} md={8}>
         <Paper sx={{ p: 2 }}>
-          <Typography variant="h6" sx={{ mb: 2 }}>Video Consultation</Typography>
+          {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+          <Typography variant="h6" sx={{ mb: 2 }}>
+            {consultation ? `Consultation with Dr. ${consultation.doctorName}` : 'Video Consultation'}
+          </Typography>
+          {consultation && (
+            <Typography variant="body2" sx={{ mb: 2 }} color="text.secondary">
+              Scheduled: {new Date(consultation.date).toLocaleString()}
+            </Typography>
+          )}
           
           {/* Local Video */}
           <Box sx={{ mb: 2 }}>
