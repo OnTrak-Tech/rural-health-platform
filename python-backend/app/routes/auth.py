@@ -9,6 +9,23 @@ import pyotp
 from typing import Optional
 
 from ..middleware.auth_middleware import verify_mfa, generate_mfa_secret, audit_log, get_current_user
+from ..database_enhanced import User, Patient, DoctorProfile, VerificationDocument
+from passlib.context import CryptContext
+from cryptography.fernet import Fernet
+import os
+import shutil
+from datetime import datetime
+from fastapi import UploadFile, File, Form
+from typing import List
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+def encrypt_sensitive_data(data: str) -> str:
+    key = os.getenv("ENCRYPTION_KEY")
+    if not key:
+        raise RuntimeError("ENCRYPTION_KEY not set")
+    cipher_suite = Fernet(key.encode())
+    return cipher_suite.encrypt(data.encode()).decode()
 from app.limits import limiter
 from ..database_enhanced import get_db, User, Patient, Admin
 
@@ -75,14 +92,15 @@ async def create_super_admin(
         admin = Admin(
             user_id=user.id,
             permissions=[
-                "doctor_registration",
-                "user_management", 
                 "system_admin",
+                "user_management",
+                "doctor_registration",
                 "audit_access"
             ]
         )
         db.add(admin)
         db.commit()
+        db.refresh(admin)
         
         audit_log("SUPER_ADMIN_CREATED", user.id, {"email": email})
         
@@ -134,9 +152,20 @@ async def login(payload: LoginRequest, request: Request, db: Session = Depends(g
     
     audit_log("LOGIN_SUCCESS", user.id, {"email": payload.email})
     
+    # Get verification status for doctors
+    verification_status = None
+    if user.role == "doctor":
+        from ..database_enhanced import DoctorProfile
+        doctor_profile = db.query(DoctorProfile).filter(DoctorProfile.user_id == user.id).first()
+        verification_status = doctor_profile.verification_status if doctor_profile else "pending"
+    
+    user_data = {"id": user.id, "email": user.email, "role": user.role, "name": user.name}
+    if verification_status:
+        user_data["verification_status"] = verification_status
+    
     return {
         "token": token,
-        "user": {"id": user.id, "email": user.email, "role": user.role, "name": user.name},
+        "user": user_data,
         "requiresMFA": False
     }
 
@@ -185,6 +214,104 @@ async def register_patient(request: RegisterRequest):
     raise HTTPException(status_code=403, detail="Patient registration must be performed by an admin via /api/admin/register/patient")
 
 @router.post("/register/doctor")
-async def register_doctor(request: RegisterRequest):
-    # Doctor registration must be performed via admin workflow
-    raise HTTPException(status_code=403, detail="Doctor registration must be performed by an admin via /api/admin/register/doctor")
+@limiter.limit("3/minute")
+async def register_doctor(
+    request: Request,
+    email: str = Form(...),
+    password: str = Form(...),
+    full_name: str = Form(...),
+    phone: str = Form(...),
+    medical_license: str = Form(...),
+    npi_number: str = Form(...),
+    primary_specialization: str = Form(...),
+    medical_school: str = Form(...),
+    graduation_year: int = Form(...),
+    years_of_practice: int = Form(...),
+    practice_address: str = Form(...),
+    telemedicine_states: str = Form(...),
+    license_document: UploadFile = File(...),
+    certification_documents: List[UploadFile] = File(...),
+    db: Session = Depends(get_db)
+):
+    """Public doctor self-registration (creates pending account)"""
+    
+    try:
+        # Check if user already exists
+        existing_user = db.query(User).filter(User.email == email.lower()).first()
+        if existing_user:
+            raise HTTPException(status_code=400, detail="Email already registered")
+        
+        # Validate file types
+        allowed_extensions = {'.pdf', '.jpg', '.jpeg', '.png'}
+        if not any(license_document.filename.lower().endswith(ext) for ext in allowed_extensions):
+            raise HTTPException(status_code=400, detail="Invalid license document format")
+        
+        # Create user account (inactive, pending verification)
+        hashed_password = pwd_context.hash(password)
+        user = User(
+            email=email.lower(),
+            password_hash=hashed_password,
+            role="doctor",
+            name=full_name,
+            phone=phone,
+            is_active=True,  # Allow login but restrict access
+            email_verified=False,
+            phone_verified=False
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+        
+        # Save documents
+        doc_dir = f"secure_documents/doctor_{user.id}"
+        os.makedirs(doc_dir, exist_ok=True)
+        
+        license_filename = f"license_{int(datetime.now().timestamp())}_{license_document.filename}"
+        license_path = os.path.join(doc_dir, license_filename)
+        with open(license_path, "wb") as buffer:
+            shutil.copyfileobj(license_document.file, buffer)
+        
+        cert_paths = []
+        for i, cert_doc in enumerate(certification_documents):
+            cert_filename = f"cert_{i}_{int(datetime.now().timestamp())}_{cert_doc.filename}"
+            cert_path = os.path.join(doc_dir, cert_filename)
+            with open(cert_path, "wb") as buffer:
+                shutil.copyfileobj(cert_doc.file, buffer)
+            cert_paths.append(cert_path)
+        
+        # Create doctor profile (pending status)
+        states_list = [s.strip().upper() for s in telemedicine_states.split(',')]
+        doctor_profile = DoctorProfile(
+            user_id=user.id,
+            medical_license_encrypted=encrypt_sensitive_data(medical_license),
+            npi_number_encrypted=encrypt_sensitive_data(npi_number),
+            primary_specialization=primary_specialization,
+            medical_school=medical_school,
+            graduation_year=graduation_year,
+            years_of_practice=years_of_practice,
+            practice_address=practice_address,
+            telemedicine_states=states_list,
+            license_document_path=license_path,
+            certification_documents=cert_paths,
+            verification_status="pending"
+        )
+        db.add(doctor_profile)
+        db.commit()
+        
+        audit_log("DOCTOR_SELF_REGISTRATION", user.id, {"email": email, "specialization": primary_specialization})
+        
+        return {
+            "message": "Registration successful! Your account is pending verification.",
+            "doctor_id": user.id,
+            "verification_status": "pending",
+            "next_steps": [
+                "You can now login to your account",
+                "Your application is under review",
+                "You'll receive an email once approved",
+                "Estimated review time: 2-3 business days"
+            ]
+        }
+        
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Registration failed: {str(e)}")

@@ -11,11 +11,14 @@ import {
 import { LocalHospital } from '@mui/icons-material';
 
 import Login from './components/Login';
-import PatientDashboard from './components/PatientDashboard';
+import HealthPractitionerDashboard from './components/HealthPractitionerDashboard';
+import AdminDashboard from './components/AdminDashboard';
 import AdminDoctorRegistration from './components/AdminDoctorRegistration';
 import AdminPatientRegistration from './components/AdminPatientRegistration';
 import AdminPendingDoctors from './components/AdminPendingDoctors';
 import DoctorDashboard from './components/DoctorDashboard';
+import PendingDoctorDashboard from './components/PendingDoctorDashboard';
+import DoctorRegistration from './components/DoctorRegistration';
 import VideoConsultation from './components/VideoConsultation';
 import SuperAdminSetup from './components/SuperAdminSetup';
 import TriageForm from './components/TriageForm';
@@ -92,15 +95,19 @@ function App() {
                 <Button color="inherit" component={Link} to="/dashboard">
                   Dashboard
                 </Button>
-                <Button color="inherit" component={Link} to="/consultation">
-                  Consultation
-                </Button>
-                <Button color="inherit" component={Link} to="/triage">
-                  Triage
-                </Button>
-                <Button color="inherit" component={Link} to="/book">
-                  Book
-                </Button>
+                {user.role !== 'admin' && (
+                  <>
+                    <Button color="inherit" component={Link} to="/consultation">
+                      Consultation
+                    </Button>
+                    <Button color="inherit" component={Link} to="/triage">
+                      Triage
+                    </Button>
+                    <Button color="inherit" component={Link} to="/book">
+                      Book
+                    </Button>
+                  </>
+                )}
                 <Button color="inherit" onClick={handleLogout}>
                   Logout ({user.email})
                 </Button>
@@ -113,21 +120,26 @@ function App() {
           <OfflineBanner />
           <Routes>
             <Route path="/login" element={!user ? <Login onLogin={handleLogin} /> : <Navigate to="/dashboard" />} />
+            <Route path="/register/doctor" element={!user ? <DoctorRegistration /> : <Navigate to="/dashboard" />} />
             <Route path="/setup-super-admin" element={<SuperAdminSetup />} />
 
             {user ? (
               <>
-                <Route path="/dashboard" element={user.role === 'doctor' ? <DoctorDashboard user={user} /> : <PatientDashboard user={user} />} />
+                <Route path="/dashboard" element={
+                  user.role === 'doctor' ? (
+                    user.verification_status === 'pending' ? 
+                      <PendingDoctorDashboard user={user} /> : 
+                      <DoctorDashboard user={user} />
+                  ) :
+                  user.role === 'admin' ? <AdminDashboard user={user} /> :
+                  <HealthPractitionerDashboard user={user} />
+                } />
                 <Route path="/consultation" element={<VideoConsultation user={user} />} />
                 {user.role === 'admin' && (
                   <>
                     <Route path="/admin/register-patient" element={<AdminPatientRegistration />} />
-                    {adminPerms.includes('system_admin') && (
-                      <>
-                        <Route path="/admin/register-doctor" element={<AdminDoctorRegistration user={user} />} />
-                        <Route path="/admin/pending-doctors" element={<AdminPendingDoctors />} />
-                      </>
-                    )}
+                    <Route path="/admin/register-doctor" element={<AdminDoctorRegistration user={user} />} />
+                    <Route path="/admin/pending-doctors" element={<AdminPendingDoctors />} />
                   </>
                 )}
                 <Route path="/triage" element={<TriageForm />} />

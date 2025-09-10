@@ -44,7 +44,6 @@ function AdminDoctorRegistration({ user }) {
   const [formData, setFormData] = useState({
     // Personal Information
     email: '',
-    password: '',
     full_name: '',
     phone: '',
     
@@ -106,7 +105,7 @@ function AdminDoctorRegistration({ user }) {
   const validateStep = (step) => {
     switch (step) {
       case 0:
-        return formData.email && formData.password && formData.full_name && formData.phone;
+        return formData.email && formData.full_name && formData.phone;
       case 1:
         return formData.medical_license && formData.npi_number && formData.state_license;
       case 2:
@@ -162,7 +161,7 @@ function AdminDoctorRegistration({ user }) {
       setSuccess('Doctor registration submitted successfully for verification');
       // Reset form
       setFormData({
-        email: '', password: '', full_name: '', phone: '',
+        email: '', full_name: '', phone: '',
         medical_license: '', dea_number: '', npi_number: '', state_license: '',
         primary_specialization: '', sub_specializations: [], medical_school: '',
         graduation_year: new Date().getFullYear() - 5, years_of_practice: 0,
@@ -194,16 +193,10 @@ function AdminDoctorRegistration({ user }) {
                 helperText="Preferably institutional email (.edu, .org, hospital domain)"
               />
             </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Secure Password"
-                type="password"
-                value={formData.password}
-                onChange={(e) => handleInputChange('password', e.target.value)}
-                required
-                helperText="Minimum 8 characters"
-              />
+            <Grid item xs={12}>
+              <Alert severity="info">
+                A secure password will be auto-generated and sent to the doctor via email notification.
+              </Alert>
             </Grid>
             <Grid item xs={12} md={6}>
               <TextField
@@ -335,25 +328,18 @@ function AdminDoctorRegistration({ user }) {
               />
             </Grid>
             <Grid item xs={12}>
-              <FormControl fullWidth required>
-                <InputLabel>Telemedicine Licensed States</InputLabel>
-                <Select
-                  multiple
-                  value={formData.telemedicine_states}
-                  onChange={(e) => handleInputChange('telemedicine_states', e.target.value)}
-                  renderValue={(selected) => (
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                      {selected.map((value) => (
-                        <Chip key={value} label={value} size="small" />
-                      ))}
-                    </Box>
-                  )}
-                >
-                  {US_STATES.map(state => (
-                    <MenuItem key={state} value={state}>{state}</MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+              <TextField
+                fullWidth
+                label="Telemedicine Licensed States"
+                value={formData.telemedicine_states.join(', ')}
+                onChange={(e) => {
+                  const states = e.target.value.split(',').map(s => s.trim().toUpperCase()).filter(s => s);
+                  handleInputChange('telemedicine_states', states);
+                }}
+                required
+                helperText="Enter state codes separated by commas (e.g., CA, NY, TX)"
+                placeholder="CA, NY, TX"
+              />
             </Grid>
           </Grid>
         );

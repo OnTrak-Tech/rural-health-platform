@@ -52,3 +52,50 @@ AttributeError: module 'bcrypt' has no attribute '__about__'
 2025-09-03 15:14:56,860 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-03T15:14:56.860176', 'action': 'LOGIN_SUCCESS', 'user_id': 1, 'details': {'email': 'patient1@example.com'}}
 2025-09-03 15:25:21,999 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-03T15:25:21.999332', 'action': 'LOGIN_ATTEMPT', 'user_id': None, 'details': {'email': 'patient1@example.com', 'role': 'patient'}}
 2025-09-03 15:25:22,335 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-03T15:25:22.335346', 'action': 'LOGIN_SUCCESS', 'user_id': 1, 'details': {'email': 'patient1@example.com'}}
+2025-09-09 16:33:31,827 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-09T16:33:31.827367', 'action': 'LOGIN_ATTEMPT', 'user_id': None, 'details': {'email': 'patient1@example.com', 'role': 'patient'}}
+2025-09-09 16:33:32,350 - passlib.handlers.bcrypt - WARNING - (trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "/home/ontrak-tech/Work & Happiness/rural-health-platform/python-backend/venv/lib/python3.12/site-packages/passlib/handlers/bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+              ^^^^^^^^^^^^^^^^^
+AttributeError: module 'bcrypt' has no attribute '__about__'
+2025-09-09 16:33:32,987 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-09T16:33:32.987004', 'action': 'LOGIN_SUCCESS', 'user_id': 1, 'details': {'email': 'patient1@example.com'}}
+2025-09-09 16:37:35,032 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-09T16:37:35.031982', 'action': 'SUPER_ADMIN_CREATED', 'user_id': 2, 'details': {'email': 'superadmin@example.com'}}
+2025-09-09 16:56:45,088 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-09T16:56:45.088190', 'action': 'LOGIN_ATTEMPT', 'user_id': None, 'details': {'email': 'superadmin@example.com', 'role': 'admin'}}
+2025-09-09 16:56:45,478 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-09T16:56:45.478312', 'action': 'LOGIN_SUCCESS', 'user_id': 2, 'details': {'email': 'superadmin@example.com'}}
+2025-09-09 18:05:57,884 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-09T18:05:57.884128', 'action': 'LOGIN_ATTEMPT', 'user_id': None, 'details': {'email': 'superadmin@example.com', 'role': 'admin'}}
+2025-09-09 18:05:59,902 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-09T18:05:59.902390', 'action': 'LOGIN_FAILED', 'user_id': None, 'details': {'email': 'superadmin@example.com'}}
+2025-09-09 18:07:42,656 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-09T18:07:42.656235', 'action': 'LOGIN_ATTEMPT', 'user_id': None, 'details': {'email': 'superadmin@example.com', 'role': 'admin'}}
+2025-09-09 18:07:43,256 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-09T18:07:43.255953', 'action': 'LOGIN_SUCCESS', 'user_id': 2, 'details': {'email': 'superadmin@example.com'}}
+2025-09-09 18:16:34,730 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-09T18:16:34.730655', 'action': 'LOGIN_ATTEMPT', 'user_id': None, 'details': {'email': 'superadmin@example.com', 'role': 'admin'}}
+2025-09-09 18:16:35,259 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-09T18:16:35.259321', 'action': 'LOGIN_SUCCESS', 'user_id': 2, 'details': {'email': 'superadmin@example.com'}}
+2025-09-09 18:19:52,881 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-09T18:19:52.881518', 'action': 'LOGIN_ATTEMPT', 'user_id': None, 'details': {'email': 'superadmin@example.com', 'role': 'admin'}}
+2025-09-09 18:19:53,413 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-09T18:19:53.413896', 'action': 'LOGIN_SUCCESS', 'user_id': 2, 'details': {'email': 'superadmin@example.com'}}
+2025-09-09 20:21:34,394 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-09T20:21:34.393832', 'action': 'LOGIN_ATTEMPT', 'user_id': None, 'details': {'email': 'superadmin@example.com', 'role': 'admin'}}
+2025-09-09 20:21:34,519 - passlib.handlers.bcrypt - WARNING - (trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "/home/ontrak-tech/Work & Happiness/rural-health-platform/python-backend/venv/lib/python3.12/site-packages/passlib/handlers/bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+              ^^^^^^^^^^^^^^^^^
+AttributeError: module 'bcrypt' has no attribute '__about__'
+2025-09-09 20:21:35,249 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-09T20:21:35.249252', 'action': 'LOGIN_FAILED', 'user_id': None, 'details': {'email': 'superadmin@example.com'}}
+2025-09-09 20:21:51,872 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-09T20:21:51.872576', 'action': 'LOGIN_ATTEMPT', 'user_id': None, 'details': {'email': 'superadmin@example.com', 'role': 'admin'}}
+2025-09-09 20:21:52,300 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-09T20:21:52.300484', 'action': 'LOGIN_SUCCESS', 'user_id': 2, 'details': {'email': 'superadmin@example.com'}}
+2025-09-09 20:37:20,243 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-09T20:37:20.243550', 'action': 'LOGIN_ATTEMPT', 'user_id': None, 'details': {'email': 'superadmin@example.com', 'role': 'admin'}}
+2025-09-09 20:37:21,148 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-09T20:37:21.148716', 'action': 'LOGIN_SUCCESS', 'user_id': 2, 'details': {'email': 'superadmin@example.com'}}
+2025-09-09 20:38:41,390 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-09T20:38:41.390784', 'action': 'LOGIN_ATTEMPT', 'user_id': None, 'details': {'email': 'superadmin@example.com', 'role': 'admin'}}
+2025-09-09 20:38:41,956 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-09T20:38:41.956310', 'action': 'LOGIN_SUCCESS', 'user_id': 2, 'details': {'email': 'superadmin@example.com'}}
+2025-09-09 21:55:53,405 - passlib.handlers.bcrypt - WARNING - (trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "/home/ontrak-tech/Work & Happiness/rural-health-platform/python-backend/venv/lib/python3.12/site-packages/passlib/handlers/bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+              ^^^^^^^^^^^^^^^^^
+AttributeError: module 'bcrypt' has no attribute '__about__'
+2025-09-09 21:55:53,971 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-09T21:55:53.971574', 'action': 'SUPER_ADMIN_CREATED', 'user_id': 1, 'details': {'email': 'admin@healthcare.com'}}
+2025-09-09 21:56:12,031 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-09T21:56:12.031650', 'action': 'LOGIN_ATTEMPT', 'user_id': None, 'details': {'email': 'admin@healthcare.com', 'role': 'admin'}}
+2025-09-09 21:56:12,433 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-09T21:56:12.433266', 'action': 'LOGIN_SUCCESS', 'user_id': 1, 'details': {'email': 'admin@healthcare.com'}}
+2025-09-09 21:58:29,543 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-09T21:58:29.543788', 'action': 'PATIENT_REGISTERED_ADMIN', 'user_id': 1, 'details': {'email': 'nurse@healthcare.com', 'patient_user_id': 2}}
+2025-09-09 21:58:50,192 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-09T21:58:50.192764', 'action': 'LOGIN_ATTEMPT', 'user_id': None, 'details': {'email': 'nurse@healthcare.com', 'role': 'patient'}}
+2025-09-09 21:58:50,553 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-09T21:58:50.553632', 'action': 'LOGIN_SUCCESS', 'user_id': 2, 'details': {'email': 'nurse@healthcare.com'}}
+2025-09-09 22:41:13,689 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-09T22:41:13.689653', 'action': 'LOGIN_ATTEMPT', 'user_id': None, 'details': {'email': 'nurse@healthcare.com', 'role': 'patient'}}
+2025-09-09 22:41:15,411 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-09T22:41:15.411786', 'action': 'LOGIN_SUCCESS', 'user_id': 2, 'details': {'email': 'nurse@healthcare.com'}}

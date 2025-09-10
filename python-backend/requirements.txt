@@ -1,3 +1,4 @@
+# Core FastAPI dependencies
 fastapi==0.104.1
 uvicorn==0.24.0
 python-jose[cryptography]==3.3.0
@@ -7,8 +8,21 @@ pyotp==2.9.0
 python-socketio==5.10.0
 python-dotenv==1.0.0
 slowapi==0.1.9
+
+# Database
 sqlalchemy==2.0.23
 psycopg2-binary==2.9.9
+
+# OCR functionality
 pytesseract==0.3.10
 Pillow==10.1.0
 pdf2image==1.16.3
+
+# Enhanced security
+cryptography==41.0.7
+pydantic[email]==2.5.0
+python-magic==0.4.27
+aiofiles==23.2.1
+python-magic-bin==0.4.14
+bcrypt==4.0.1
+email-validator==2.1.0
