@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Box, Paper, TextField, Button, Typography, Grid, Alert, List, ListItem, ListItemText } from '@mui/material';
+import { getToken } from '../authToken';
 
 const API_BASE = (process.env.REACT_APP_API_BASE || 'http://localhost:8000') + '/api';
 
@@ -18,7 +19,7 @@ export default function MatchSpecialist({ onSelect }) {
     setError('');
     setResults([]);
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const q = new URLSearchParams({
         ...(specialization ? { specialization } : {}),
         ...(state ? { state } : {}),
@@ -42,7 +43,7 @@ export default function MatchSpecialist({ onSelect }) {
     setError('');
     setAiResults([]);
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const q = new URLSearchParams({
         ...(symptoms ? { symptoms } : {})
       }).toString();

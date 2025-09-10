@@ -1,5 +1,6 @@
 // IndexedDB-powered offline queue for consultations using idb-keyval
 import { get, update } from 'idb-keyval';
+import { getToken } from './authToken';
 
 const STORAGE_KEY = 'offline_consultations_v2';
 
@@ -38,7 +39,7 @@ export async function removeQueuedByClientIds(clientIds) {
 
 export async function syncQueuedConsultations() {
   const base = process.env.REACT_APP_API_BASE || 'http://localhost:8000';
-  const token = localStorage.getItem('token');
+  const token = getToken();
   const list = (await getQueuedConsultations()) || [];
   if (!list.length) return { results: [] };
 

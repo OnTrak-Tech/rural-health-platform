@@ -99,3 +99,15 @@ AttributeError: module 'bcrypt' has no attribute '__about__'
 2025-09-09 21:58:50,553 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-09T21:58:50.553632', 'action': 'LOGIN_SUCCESS', 'user_id': 2, 'details': {'email': 'nurse@healthcare.com'}}
 2025-09-09 22:41:13,689 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-09T22:41:13.689653', 'action': 'LOGIN_ATTEMPT', 'user_id': None, 'details': {'email': 'nurse@healthcare.com', 'role': 'patient'}}
 2025-09-09 22:41:15,411 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-09T22:41:15.411786', 'action': 'LOGIN_SUCCESS', 'user_id': 2, 'details': {'email': 'nurse@healthcare.com'}}
+2025-09-10 16:10:43,737 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-10T16:10:43.737674', 'action': 'LOGIN_ATTEMPT', 'user_id': None, 'details': {'email': 'admin@healthcare.com', 'role': 'admin'}}
+2025-09-10 16:10:44,270 - passlib.handlers.bcrypt - WARNING - (trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "/home/ontrak-tech/Work & Happiness/rural-health-platform/python-backend/venv/lib/python3.12/site-packages/passlib/handlers/bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+              ^^^^^^^^^^^^^^^^^
+AttributeError: module 'bcrypt' has no attribute '__about__'
+2025-09-10 16:10:44,729 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-10T16:10:44.729719', 'action': 'LOGIN_SUCCESS', 'user_id': 1, 'details': {'email': 'admin@healthcare.com'}}
+2025-09-10 16:13:18,846 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-10T16:13:18.846152', 'action': 'LOGIN_ATTEMPT', 'user_id': None, 'details': {'email': 'nurse@healthcare.com', 'role': 'patient'}}
+2025-09-10 16:13:19,196 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-10T16:13:19.195981', 'action': 'LOGIN_SUCCESS', 'user_id': 2, 'details': {'email': 'nurse@healthcare.com'}}
+2025-09-10 16:20:44,481 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-10T16:20:44.481128', 'action': 'SYNC_CONSULTATION_CREATED', 'user_id': 2, 'details': {'consultation_id': 1}}
+2025-09-10 16:23:28,957 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-10T16:23:28.957021', 'action': 'SYNC_CONSULTATION_CREATED', 'user_id': 2, 'details': {'consultation_id': 2}}
