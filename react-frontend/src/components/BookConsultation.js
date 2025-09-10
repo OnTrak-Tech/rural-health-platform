@@ -2,11 +2,15 @@ import React, { useState } from 'react';
 import { Box, Paper, TextField, Button, Typography, Grid, Alert, Chip } from '@mui/material';
 import MatchSpecialist from './MatchSpecialist';
 import { queueConsultation } from '../offlineQueue';
+import { getToken } from '../authToken';
 
 const API_BASE = (process.env.REACT_APP_API_BASE || 'http://localhost:8000') + '/api';
 
 export default function BookConsultation() {
-  const [form, setForm] = useState({ date: '', symptoms: '' });
+  const [form, setForm] = useState({ 
+    date: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 16), // Tomorrow at current time
+    symptoms: '' 
+  });
   const [selectedDoctor, setSelectedDoctor] = useState(null);
   const [queued, setQueued] = useState(false);
   const [success, setSuccess] = useState('');
@@ -18,10 +22,25 @@ export default function BookConsultation() {
     setQueued(false);
     setSuccess('');
     setError('');
+    
+    // Validate required fields
+    if (!form.date) {
+      setError('Date/Time is required');
+      return;
+    }
+    if (!form.symptoms.trim()) {
+      setError('Symptoms are required');
+      return;
+    }
+    if (!selectedDoctor) {
+      setError('Please select a doctor');
+      return;
+    }
+    
     const payload = {
-      doctorId: selectedDoctor?.id || undefined,
-      date: form.date || new Date().toISOString(),
-      symptoms: form.symptoms || 'General'
+      doctorId: selectedDoctor.id,
+      date: new Date(form.date).toISOString(),
+      symptoms: form.symptoms
     };
     if (!navigator.onLine) {
       queueConsultation({ ...payload, specialization: selectedDoctor?.specialization });
@@ -32,7 +51,7 @@ export default function BookConsultation() {
     try {
       const res = await fetch(`${API_BASE}/consultations`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('token')}` },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
         body: JSON.stringify(payload)
       });
       if (!res.ok) throw new Error((await res.text()) || 'Booking failed');
@@ -57,10 +76,29 @@ export default function BookConsultation() {
         <Box component="form" onSubmit={submit}>
           <Grid container spacing={2}>
             <Grid item xs={12} md={6}>
-              <TextField fullWidth label="Date/Time (ISO)" placeholder={new Date().toISOString()} value={form.date} onChange={e=>setForm(f=>({...f, date:e.target.value}))} />
+              <TextField 
+                fullWidth 
+                label="Consultation Date & Time" 
+                type="datetime-local"
+                value={form.date} 
+                onChange={e=>setForm(f=>({...f, date:e.target.value}))}
+                required
+                error={!form.date}
+                helperText={!form.date ? 'Date/Time is required' : 'Select your preferred consultation time'}
+                InputLabelProps={{ shrink: true }}
+              />
             </Grid>
             <Grid item xs={12} md={6}>
-              <TextField fullWidth label="Symptoms" placeholder="fever, cough" value={form.symptoms} onChange={e=>setForm(f=>({...f, symptoms:e.target.value}))} />
+              <TextField 
+                fullWidth 
+                label="Symptoms" 
+                placeholder="fever, cough" 
+                value={form.symptoms} 
+                onChange={e=>setForm(f=>({...f, symptoms:e.target.value}))}
+                required
+                error={!form.symptoms.trim()}
+                helperText={!form.symptoms.trim() ? 'Symptoms are required' : ''}
+              />
             </Grid>
           </Grid>
           <Box sx={{ mt: 2 }}>
@@ -74,7 +112,12 @@ export default function BookConsultation() {
           <Box sx={{ mt: 2 }}>
             <MatchSpecialist onSelect={setSelectedDoctor} />
           </Box>
-          <Button type="submit" variant="contained" sx={{ mt: 2 }} disabled={loading}>
+          <Button 
+            type="submit" 
+            variant="contained" 
+            sx={{ mt: 2 }} 
+            disabled={loading}
+          >
             {loading ? 'Booking...' : 'Book Consultation'}
           </Button>
         </Box>
@@ -82,4 +125,3 @@ export default function BookConsultation() {
     </Box>
   );
 }
-
