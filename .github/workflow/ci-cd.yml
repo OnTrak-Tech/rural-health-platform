@@ -1,13 +1,48 @@
-name: CI/CD Pipeline
+name: Healthcare Platform CI/CD
 
 on:
   push:
     branches: [ "main" ]
   pull_request:
+    branches: [ "main" ]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  build-and-test:
+  test-backend:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./python-backend
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run backend tests
+        run: |
+          python -m pytest tests/ -v
+        env:
+          JWT_SECRET: test-secret
+          ENCRYPTION_KEY: test-key-32-chars-long-for-fernet
+          DATABASE_URL: sqlite:///test.db
+
+  test-frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./react-frontend
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -16,27 +51,56 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: react-frontend/package-lock.json
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Run tests
-        run: npm test
+      - name: Run frontend tests
+        run: npm test -- --coverage --watchAll=false
 
-      - name: Build app
+      - name: Build frontend
         run: npm run build
 
-  deploy:
-    needs: build-and-test
+  build-images:
+    needs: [test-backend, test-frontend]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # --- Choose ONE of the following deploy blocks ---
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-      # AWS example: deploy static site to S3
+      - name: Build and push backend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./python-backend
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:latest
+
+      - name: Build and push frontend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./react-frontend
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:latest
+
+  deploy:
+    needs: build-images
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Deploy to AWS ECS/EKS
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -44,17 +108,38 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Sync to S3
-        run: aws s3 sync ./build s3://your-bucket-name --delete
+      - name: Deploy to ECS
+        run: |
+          # Update ECS service with new images
+          aws ecs update-service \
+            --cluster healthcare-cluster \
+            --service healthcare-backend \
+            --force-new-deployment
+          
+          aws ecs update-service \
+            --cluster healthcare-cluster \
+            --service healthcare-frontend \
+            --force-new-deployment
 
-      # Azure example: deploy to Azure Web App
-      # - name: Azure Login
-      #   uses: azure/login@v2
+      # Alternative: Deploy using Docker Compose on EC2
+      # - name: Deploy to EC2
+      #   uses: appleboy/ssh-action@v1.0.0
       #   with:
-      #     creds: ${{ secrets.AZURE_CREDENTIALS }}
-      #
-      # - name: Deploy to Azure Web App
-      #   uses: azure/webapps-deploy@v3
-      #   with:
-      #     app-name: your-azure-app
-      #     package: ./build
+      #     host: ${{ secrets.EC2_HOST }}
+      #     username: ${{ secrets.EC2_USER }}
+      #     key: ${{ secrets.EC2_SSH_KEY }}
+      #     script: |
+      #       cd /opt/healthcare-platform
+      #       git pull origin main
+      #       docker-compose pull
+      #       docker-compose up -d --force-recreate
+
+      # Alternative: Deploy to Kubernetes
+      # - name: Deploy to Kubernetes
+      #   run: |
+      #     echo "${{ secrets.KUBECONFIG }}" | base64 -d > kubeconfig
+      #     export KUBECONFIG=kubeconfig
+      #     kubectl set image deployment/backend backend=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:latest
+      #     kubectl set image deployment/frontend frontend=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:latest
+      #     kubectl rollout status deployment/backend
+      #     kubectl rollout status deployment/frontend
