@@ -24,6 +24,8 @@ async def book_consultation(
     current_user: dict = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    print(f"Booking consultation: patient_user_id={current_user['id']}, doctor_id={consultation_data.doctorId}")
+    
     # Get or create patient record
     patient = db.query(Patient).filter(Patient.user_id == current_user["id"]).first()
     if not patient:
@@ -31,6 +33,8 @@ async def book_consultation(
         db.add(patient)
         db.commit()
         db.refresh(patient)
+    
+    print(f"Patient record: id={patient.id}, user_id={patient.user_id}")
     
     # Parse date
     try:
@@ -50,6 +54,8 @@ async def book_consultation(
     db.add(consultation)
     db.commit()
     db.refresh(consultation)
+    
+    print(f"Consultation created: id={consultation.id}, patient_id={consultation.patient_id}, doctor_id={consultation.doctor_id}")
     
     return {
         "id": consultation.id,

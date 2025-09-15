@@ -14,6 +14,8 @@ async def get_doctor_consultations(
     db: Session = Depends(get_db)
 ):
     """Get consultations assigned to the current doctor"""
+    print(f"Doctor {current_user['id']} requesting consultations")
+    
     consultations = db.query(Consultation, Patient, User).join(
         Patient, Consultation.patient_id == Patient.id
     ).join(
@@ -22,8 +24,11 @@ async def get_doctor_consultations(
         Consultation.doctor_id == current_user["id"]
     ).order_by(Consultation.date.desc()).all()
     
+    print(f"Found {len(consultations)} consultations for doctor {current_user['id']}")
+    
     results = []
     for consultation, patient, user in consultations:
+        print(f"Consultation: id={consultation.id}, doctor_id={consultation.doctor_id}, patient={user.name}")
         results.append({
             "id": consultation.id,
             "patientName": user.name,

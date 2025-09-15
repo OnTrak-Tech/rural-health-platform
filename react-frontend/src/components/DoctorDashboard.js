@@ -45,11 +45,17 @@ function DoctorDashboard({ user }) {
   const fetchAppointments = async () => {
     try {
       const token = getToken();
+      console.log('Fetching consultations for doctor ID:', user.id);
+      
       const response = await fetch(`${API_BASE}/doctors/consultations`, {
         headers: { Authorization: `Bearer ${token}` }
       });
+      
+      console.log('API Response status:', response.status);
+      
       if (response.ok) {
         const data = await response.json();
+        console.log('Consultations received:', data);
         setAppointments(data);
         setStats({
           totalPatients: data.length,
@@ -58,6 +64,9 @@ function DoctorDashboard({ user }) {
           ).length,
           pendingConsultations: data.filter(apt => apt.status === 'scheduled').length
         });
+      } else {
+        const errorText = await response.text();
+        console.error('API Error:', errorText);
       }
     } catch (error) {
       console.error('Failed to fetch appointments:', error);
@@ -80,6 +89,7 @@ function DoctorDashboard({ user }) {
             </Box>
             <Typography><strong>Name:</strong> {user.name}</Typography>
             <Typography><strong>Email:</strong> {user.email}</Typography>
+            <Typography><strong>Doctor ID:</strong> {user.id}</Typography>
             <Typography><strong>Role:</strong> Medical Specialist</Typography>
           </CardContent>
         </Card>
@@ -123,7 +133,10 @@ function DoctorDashboard({ user }) {
         <Paper sx={{ p: 2 }}>
           <Typography variant="h6" sx={{ mb: 2 }}>My Consultations</Typography>
           {appointments.length === 0 ? (
-            <Typography color="textSecondary">No consultations scheduled</Typography>
+            <Typography color="textSecondary">
+              No consultations assigned to Doctor ID: {user.id}. 
+              Check browser console for API details.
+            </Typography>
           ) : (
             <List>
               {appointments.map((appointment) => (
