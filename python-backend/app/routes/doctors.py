@@ -3,10 +3,38 @@ from typing import List, Optional
 from sqlalchemy.orm import Session
 
 from app.middleware.auth_middleware import get_current_user
-from app.database_enhanced import get_db, User, DoctorProfile, Patient
+from app.database_enhanced import get_db, User, DoctorProfile, Patient, Consultation
 from ..services.ai_recommendation import AIRecommendationService
 
 router = APIRouter()
+
+@router.get("/consultations")
+async def get_doctor_consultations(
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get consultations assigned to the current doctor"""
+    consultations = db.query(Consultation, Patient, User).join(
+        Patient, Consultation.patient_id == Patient.id
+    ).join(
+        User, Patient.user_id == User.id
+    ).filter(
+        Consultation.doctor_id == current_user["id"]
+    ).order_by(Consultation.date.desc()).all()
+    
+    results = []
+    for consultation, patient, user in consultations:
+        results.append({
+            "id": consultation.id,
+            "patientName": user.name,
+            "date": consultation.date.isoformat() if consultation.date else None,
+            "symptoms": consultation.symptoms,
+            "status": consultation.status,
+            "diagnosis": consultation.diagnosis,
+            "prescription": consultation.prescription
+        })
+    
+    return results
 
 @router.get("/profile")
 async def get_doctor_profile(current_user: dict = Depends(get_current_user)):
