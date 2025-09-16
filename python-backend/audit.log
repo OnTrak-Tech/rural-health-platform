@@ -111,3 +111,22 @@ AttributeError: module 'bcrypt' has no attribute '__about__'
 2025-09-10 16:13:19,196 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-10T16:13:19.195981', 'action': 'LOGIN_SUCCESS', 'user_id': 2, 'details': {'email': 'nurse@healthcare.com'}}
 2025-09-10 16:20:44,481 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-10T16:20:44.481128', 'action': 'SYNC_CONSULTATION_CREATED', 'user_id': 2, 'details': {'consultation_id': 1}}
 2025-09-10 16:23:28,957 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-10T16:23:28.957021', 'action': 'SYNC_CONSULTATION_CREATED', 'user_id': 2, 'details': {'consultation_id': 2}}
+2025-09-16 03:41:15,923 - passlib.handlers.bcrypt - WARNING - (trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "/home/ontrak-tech/Work & Happiness/rural-health-platform/python-backend/venv/lib/python3.12/site-packages/passlib/handlers/bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+              ^^^^^^^^^^^^^^^^^
+AttributeError: module 'bcrypt' has no attribute '__about__'
+2025-09-16 03:41:16,919 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-16T03:41:16.919023', 'action': 'DOCTOR_SELF_REGISTRATION', 'user_id': 3, 'details': {'email': 'doctor@healthcare.com', 'specialization': 'Cardiology'}}
+2025-09-16 03:41:45,811 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-16T03:41:45.811816', 'action': 'LOGIN_ATTEMPT', 'user_id': None, 'details': {'email': 'doctor@healthcare.com', 'role': 'doctor'}}
+2025-09-16 03:41:46,177 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-16T03:41:46.176985', 'action': 'LOGIN_FAILED', 'user_id': None, 'details': {'email': 'doctor@healthcare.com'}}
+2025-09-16 03:43:52,218 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-16T03:43:52.218114', 'action': 'DOCTOR_SELF_REGISTRATION', 'user_id': 4, 'details': {'email': 'doctor@ruralhealth.com', 'specialization': 'Cardiology'}}
+2025-09-16 03:44:15,368 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-16T03:44:15.368730', 'action': 'LOGIN_ATTEMPT', 'user_id': None, 'details': {'email': 'doctor@ruralhealth.com', 'role': 'doctor'}}
+2025-09-16 03:44:15,869 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-16T03:44:15.869114', 'action': 'LOGIN_SUCCESS', 'user_id': 4, 'details': {'email': 'doctor@ruralhealth.com'}}
+2025-09-16 03:47:06,212 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-16T03:47:06.212375', 'action': 'LOGIN_ATTEMPT', 'user_id': None, 'details': {'email': 'admin@healthcare.com', 'role': 'admin'}}
+2025-09-16 03:47:06,601 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-16T03:47:06.601224', 'action': 'LOGIN_SUCCESS', 'user_id': 1, 'details': {'email': 'admin@healthcare.com'}}
+2025-09-16 03:47:36,199 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-16T03:47:36.199257', 'action': 'DOCTOR_APPROVED', 'user_id': 1, 'details': {'doctor_id': 2, 'approved_by': 'admin@healthcare.com'}}
+2025-09-16 03:48:37,347 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-16T03:48:37.347346', 'action': 'LOGIN_ATTEMPT', 'user_id': None, 'details': {'email': 'doctor@ruralhealth.com', 'role': 'doctor'}}
+2025-09-16 03:48:37,693 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-16T03:48:37.693765', 'action': 'LOGIN_SUCCESS', 'user_id': 4, 'details': {'email': 'doctor@ruralhealth.com'}}
+2025-09-16 03:50:35,447 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-16T03:50:35.447200', 'action': 'LOGIN_ATTEMPT', 'user_id': None, 'details': {'email': 'nurse@healthcare.com', 'role': 'patient'}}
+2025-09-16 03:50:35,828 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-16T03:50:35.828362', 'action': 'LOGIN_SUCCESS', 'user_id': 2, 'details': {'email': 'nurse@healthcare.com'}}

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Paper, Typography, List, ListItem, ListItemText, Button, Chip, Alert } from '@mui/material';
+import { VideoCall } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { getToken } from '../authToken';
 
@@ -34,21 +35,13 @@ export default function MyConsultations({ user }) {
   const getStatusColor = (status) => {
     switch (status) {
       case 'scheduled': return 'primary';
+      case 'accepted': return 'success';
       case 'in-progress': return 'success';
       case 'completed': return 'default';
       case 'cancelled': return 'error';
+      case 'declined': return 'error';
       default: return 'default';
     }
-  };
-
-  const canJoin = (consultation) => {
-    const now = new Date();
-    const consultDate = new Date(consultation.date);
-    const timeDiff = consultDate.getTime() - now.getTime();
-    const minutesDiff = timeDiff / (1000 * 60);
-    
-    // Can join 15 minutes before scheduled time
-    return consultation.status === 'scheduled' && minutesDiff <= 15 && minutesDiff >= -60;
   };
 
   const joinConsultation = (consultationId) => {
@@ -108,27 +101,31 @@ export default function MyConsultations({ user }) {
                   }
                 />
                 <Box sx={{ ml: 2 }}>
-                  {canJoin(consultation) ? (
+                  {consultation.status === 'accepted' ? (
                     <Button 
                       variant="contained" 
                       color="success"
+                      startIcon={<VideoCall />}
                       onClick={() => joinConsultation(consultation.id)}
                     >
-                      Join Now
+                      Join Video Call
                     </Button>
                   ) : consultation.status === 'in-progress' ? (
                     <Button 
                       variant="contained" 
                       color="primary"
+                      startIcon={<VideoCall />}
                       onClick={() => joinConsultation(consultation.id)}
                     >
-                      Rejoin
+                      Rejoin Call
                     </Button>
                   ) : (
                     <Typography variant="body2" color="text.secondary">
                       {consultation.status === 'completed' ? 'Completed' : 
                        consultation.status === 'cancelled' ? 'Cancelled' : 
-                       'Not yet available'}
+                       consultation.status === 'declined' ? 'Declined by Doctor' :
+                       consultation.status === 'scheduled' ? 'Waiting for Doctor Approval' :
+                       'Not available'}
                     </Typography>
                   )}
                 </Box>

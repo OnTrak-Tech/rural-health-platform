@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Grid,
   Paper,
@@ -31,6 +32,7 @@ import { getToken } from '../authToken';
 const API_BASE = (process.env.REACT_APP_API_BASE || 'http://localhost:8000') + '/api';
 
 function DoctorDashboard({ user }) {
+  const navigate = useNavigate();
   const [appointments, setAppointments] = useState([]);
   const [stats, setStats] = useState({
     totalPatients: 0,
@@ -74,7 +76,29 @@ function DoctorDashboard({ user }) {
   };
 
   const joinConsultation = (consultationId) => {
-    window.location.href = `/consultation/${consultationId}`;
+    navigate(`/consultation/${consultationId}`);
+  };
+
+  const updateConsultationStatus = async (consultationId, status) => {
+    try {
+      const token = getToken();
+      const response = await fetch(`${API_BASE}/consultations/${consultationId}/status`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ status })
+      });
+      
+      if (response.ok) {
+        fetchAppointments(); // Refresh the list
+      } else {
+        console.error('Failed to update consultation status');
+      }
+    } catch (error) {
+      console.error('Error updating consultation status:', error);
+    }
   };
 
   return (
@@ -154,13 +178,37 @@ function DoctorDashboard({ user }) {
                       </Box>
                     }
                   />
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
                     <Chip 
                       label={appointment.status} 
-                      color={appointment.status === 'scheduled' ? 'primary' : 'success'}
+                      color={
+                        appointment.status === 'scheduled' ? 'primary' :
+                        appointment.status === 'accepted' ? 'success' :
+                        appointment.status === 'declined' ? 'error' : 'default'
+                      }
                       size="small"
                     />
                     {appointment.status === 'scheduled' && (
+                      <>
+                        <Button
+                          size="small"
+                          variant="contained"
+                          color="success"
+                          onClick={() => updateConsultationStatus(appointment.id, 'accepted')}
+                        >
+                          Accept
+                        </Button>
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          color="error"
+                          onClick={() => updateConsultationStatus(appointment.id, 'declined')}
+                        >
+                          Decline
+                        </Button>
+                      </>
+                    )}
+                    {appointment.status === 'accepted' && (
                       <Button
                         size="small"
                         startIcon={<VideoCall />}

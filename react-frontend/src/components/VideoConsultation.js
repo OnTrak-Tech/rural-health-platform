@@ -27,6 +27,7 @@ function VideoConsultation({ user }) {
   const [isAudioOn, setIsAudioOn] = useState(true);
   const [consultation, setConsultation] = useState(null);
   const [error, setError] = useState('');
+  const [connected, setConnected] = useState(false);
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
   const [localStream, setLocalStream] = useState(null);
@@ -43,7 +44,9 @@ function VideoConsultation({ user }) {
     initializeVideo();
 
     return () => {
-      if (socket) socket.close();
+      if (socket) {
+        socket.disconnect();
+      }
       const stream = localStreamRef.current;
       if (stream) {
         stream.getTracks().forEach(track => track.stop());
@@ -66,16 +69,39 @@ function VideoConsultation({ user }) {
   };
 
   const initializeSocket = () => {
-    const newSocket = io(SOCKET_BASE);
-    setSocket(newSocket);
+    console.log('Initializing socket connection to:', SOCKET_BASE);
+    const newSocket = io(SOCKET_BASE, {
+      transports: ['websocket', 'polling']
+    });
+    
+    newSocket.on('connect', () => {
+      console.log('Socket connected:', newSocket.id);
+      setConnected(true);
+      // Join consultation room after connection
+      newSocket.emit('join_consultation', { consultationId });
+    });
 
-    // Join specific consultation room
-    newSocket.emit('join-consultation', { consultationId });
+    newSocket.on('disconnect', () => {
+      console.log('Socket disconnected');
+      setConnected(false);
+    });
 
-    // Listen for chat messages
+    newSocket.on('user_joined', (data) => {
+      console.log('User joined:', data);
+    });
+
+    // Listen for chat messages from other users
     newSocket.on('chat-message', (data) => {
+      console.log('Received chat message:', data);
       setMessages(prev => [...prev, data]);
     });
+
+    newSocket.on('connect_error', (error) => {
+      console.error('Socket connection error:', error);
+      setError('Failed to connect to chat server');
+    });
+
+    setSocket(newSocket);
   };
 
   const initializeVideo = async () => {
@@ -95,17 +121,19 @@ function VideoConsultation({ user }) {
   };
 
   const sendMessage = () => {
-    if (newMessage.trim() && socket) {
+    if (newMessage.trim() && socket && connected) {
       const messageData = {
         text: newMessage,
-        sender: user.email,
+        sender: user.name || user.email,
         consultationId,
         timestamp: new Date().toLocaleTimeString()
       };
       
-      socket.emit('chat-message', messageData);
-      setMessages(prev => [...prev, messageData]);
+      console.log('Sending message:', messageData);
+      socket.emit('chat_message', messageData);
       setNewMessage('');
+    } else {
+      console.log('Cannot send message - socket not connected or message empty');
     }
   };
 
@@ -135,9 +163,14 @@ function VideoConsultation({ user }) {
       <Grid item xs={12} md={8}>
         <Paper sx={{ p: 2 }}>
           {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-          <Typography variant="h6" sx={{ mb: 2 }}>
-            {consultation ? `Consultation with Dr. ${consultation.doctorName}` : 'Video Consultation'}
-          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+            <Typography variant="h6">
+              {consultation ? `Consultation with Dr. ${consultation.doctorName}` : 'Video Consultation'}
+            </Typography>
+            <Typography variant="body2" color={connected ? 'success.main' : 'error.main'}>
+              {connected ? '● Connected' : '● Disconnected'}
+            </Typography>
+          </Box>
           {consultation && (
             <Typography variant="body2" sx={{ mb: 2 }} color="text.secondary">
               Scheduled: {new Date(consultation.date).toLocaleString()}
@@ -198,20 +231,28 @@ function VideoConsultation({ user }) {
       {/* Chat Section */}
       <Grid item xs={12} md={4}>
         <Paper sx={{ p: 2, height: '600px', display: 'flex', flexDirection: 'column' }}>
-          <Typography variant="h6" sx={{ mb: 2 }}>Chat</Typography>
+          <Typography variant="h6" sx={{ mb: 2 }}>
+            Chat {connected ? '(Connected)' : '(Disconnected)'}
+          </Typography>
           
           {/* Messages */}
-          <Box sx={{ flexGrow: 1, overflow: 'auto', mb: 2 }}>
-            <List>
-              {messages.map((message, index) => (
-                <ListItem key={index} sx={{ py: 0.5 }}>
-                  <ListItemText
-                    primary={message.text}
-                    secondary={`${message.sender} - ${message.timestamp}`}
-                  />
-                </ListItem>
-              ))}
-            </List>
+          <Box sx={{ flexGrow: 1, overflow: 'auto', mb: 2, border: '1px solid #e0e0e0', borderRadius: 1, p: 1 }}>
+            {messages.length === 0 ? (
+              <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', mt: 2 }}>
+                No messages yet. Start the conversation!
+              </Typography>
+            ) : (
+              <List>
+                {messages.map((message, index) => (
+                  <ListItem key={index} sx={{ py: 0.5 }}>
+                    <ListItemText
+                      primary={message.text}
+                      secondary={`${message.sender} - ${message.timestamp}`}
+                    />
+                  </ListItem>
+                ))}
+              </List>
+            )}
           </Box>
 
           {/* Message Input */}
@@ -223,8 +264,13 @@ function VideoConsultation({ user }) {
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+              disabled={!connected}
             />
-            <IconButton onClick={sendMessage} color="primary">
+            <IconButton 
+              onClick={sendMessage} 
+              color="primary"
+              disabled={!connected || !newMessage.trim()}
+            >
               <Send />
             </IconButton>
           </Box>

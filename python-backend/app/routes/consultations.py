@@ -18,6 +18,9 @@ class ConsultationUpdate(BaseModel):
     prescription: str = None
     notes: str = None
 
+class ConsultationStatus(BaseModel):
+    status: str  # "accepted", "declined", "completed"
+
 @router.post("/")
 async def book_consultation(
     consultation_data: ConsultationCreate,
@@ -64,6 +67,38 @@ async def book_consultation(
         "date": consultation_data.date,
         "symptoms": consultation_data.symptoms,
         "status": "scheduled"
+    }
+
+@router.put("/{consultation_id}/status")
+async def update_consultation_status(
+    consultation_id: int,
+    status_data: ConsultationStatus,
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    print(f"Updating consultation {consultation_id} status to {status_data.status} by doctor {current_user['id']}")
+    
+    consultation = db.query(Consultation).filter(Consultation.id == consultation_id).first()
+    if not consultation:
+        print(f"Consultation {consultation_id} not found")
+        raise HTTPException(status_code=404, detail="Consultation not found")
+    
+    print(f"Found consultation: doctor_id={consultation.doctor_id}, current_user_id={current_user['id']}")
+    
+    # Only the assigned doctor can update status
+    if consultation.doctor_id != current_user["id"]:
+        print(f"Authorization failed: consultation.doctor_id={consultation.doctor_id}, current_user_id={current_user['id']}")
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
+    consultation.status = status_data.status
+    db.commit()
+    
+    print(f"Consultation {consultation_id} status updated to {status_data.status}")
+    
+    return {
+        "message": f"Consultation {status_data.status}",
+        "id": consultation.id,
+        "status": consultation.status
     }
 
 @router.get("/{consultation_id}")

@@ -45,7 +45,17 @@ create_tables()
 # Create secure documents directory
 os.makedirs('secure_documents', exist_ok=True)
 
-# Rate limiting with stricter limits for admin endpoints
+# CORS origins
+origins_env = os.getenv("ALLOW_ORIGINS", "http://localhost:3000")
+allowed_origins = [o.strip() for o in origins_env.split(",") if o.strip()]
+
+# Socket.IO server
+sio = socketio.AsyncServer(
+    cors_allowed_origins=allowed_origins,
+    async_mode='asgi'
+)
+
+# FastAPI app
 app = FastAPI(
     title="Healthcare Platform API - Enhanced Security",
     description="HIPAA-compliant healthcare platform with secure doctor registration",
@@ -54,9 +64,7 @@ app = FastAPI(
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
-# CORS - More restrictive for production
-origins_env = os.getenv("ALLOW_ORIGINS", "http://localhost:3000")
-allowed_origins = [o.strip() for o in origins_env.split(",") if o.strip()]
+# CORS middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
@@ -64,10 +72,6 @@ app.add_middleware(
     allow_methods=["GET", "POST", "PUT", "DELETE"],
     allow_headers=["*"],
 )
-
-# Socket.IO
-sio = socketio.AsyncServer(cors_allowed_origins=allowed_origins)
-socket_app = socketio.ASGIApp(sio, app)
 
 @app.get("/")
 async def root():
@@ -85,54 +89,53 @@ async def root():
 
 # Routes
 app.include_router(auth.router, prefix="/api/auth", tags=["authentication"])
-app.include_router(admin.router, prefix="/api/admin", tags=["admin"])  # New admin routes
+app.include_router(admin.router, prefix="/api/admin", tags=["admin"])
 app.include_router(patients.router, prefix="/api/patients", tags=["patients"])
 app.include_router(doctors.router, prefix="/api/doctors", tags=["doctors"])
 app.include_router(consultations.router, prefix="/api/consultations", tags=["consultations"])
 app.include_router(files.router, prefix="/api/files", tags=["files"])
 app.include_router(knowledge.router, prefix="/api/knowledge", tags=["knowledge"])
-app.include_router(triage.router, prefix="/api/triage", tags=["triage"])  # AI-assisted triage
-app.include_router(sync.router, prefix="/api/sync", tags=["sync"])  # Offline-first sync
-app.include_router(ocr.router, prefix="/api/ocr", tags=["ocr"])  # OCR text extraction
+app.include_router(triage.router, prefix="/api/triage", tags=["triage"])
+app.include_router(sync.router, prefix="/api/sync", tags=["sync"])
+app.include_router(ocr.router, prefix="/api/ocr", tags=["ocr"])
 
-# Enhanced Socket.IO events with security
+# Socket.IO events
 @sio.event
 async def connect(sid, environ):
-    # Log connection with IP for security
-    client_ip = environ.get('REMOTE_ADDR', 'unknown')
-    logging.getLogger("healthcare_audit").info(f"WebSocket connection: {sid} from {client_ip}")
+    print(f"Socket.IO client connected: {sid}")
 
 @sio.event
 async def join_consultation(sid, data):
-    # Add authentication check for consultation rooms
     consultation_id = data.get('consultationId')
     if consultation_id:
-        await sio.enter_room(sid, consultation_id)
-        logging.getLogger("healthcare_audit").info(f"User {sid} joined consultation {consultation_id}")
-
-@sio.event
-async def video_signal(sid, data):
-    consultation_id = data.get('consultationId')
-    if consultation_id:
-        await sio.emit('video-signal', data, room=consultation_id, skip_sid=sid)
+        await sio.enter_room(sid, str(consultation_id))
+        print(f"User {sid} joined consultation room {consultation_id}")
+        await sio.emit('user_joined', {'message': f'User joined consultation {consultation_id}'}, room=str(consultation_id))
 
 @sio.event
 async def chat_message(sid, data):
     consultation_id = data.get('consultationId')
     if consultation_id:
-        # Log chat messages for audit
-        logging.getLogger("healthcare_audit").info(f"Chat message in consultation {consultation_id}")
-        await sio.emit('chat-message', data, room=consultation_id)
+        print(f"Chat message in consultation {consultation_id}: {data}")
+        # Broadcast to all users in the consultation room
+        await sio.emit('chat-message', data, room=str(consultation_id))
+
+@sio.event
+async def video_signal(sid, data):
+    consultation_id = data.get('consultationId')
+    if consultation_id:
+        await sio.emit('video-signal', data, room=str(consultation_id), skip_sid=sid)
 
 @sio.event
 async def disconnect(sid):
-    logging.getLogger("healthcare_audit").info(f"WebSocket disconnection: {sid}")
+    print(f"Socket.IO client disconnected: {sid}")
+
+# Combine FastAPI and Socket.IO
+socket_app = socketio.ASGIApp(sio, app)
 
 if __name__ == "__main__":
     uvicorn.run(
         socket_app, 
         host="0.0.0.0", 
-        port=int(os.getenv("PORT", 8000)),
-        ssl_keyfile=os.getenv("SSL_KEYFILE"),  # Optional SSL
-        ssl_certfile=os.getenv("SSL_CERTFILE")
+        port=int(os.getenv("PORT", 8000))
     )
