@@ -76,14 +76,8 @@ function VideoConsultation({ user }) {
 
   const initializeSocket = () => {
     console.log('Initializing socket connection to:', SOCKET_BASE);
-    const token = getToken(); // Get the token using your existing function
-
-    // This is the CRITICAL part for the fix: Pass the token in the auth object
     const newSocket = io(SOCKET_BASE, {
-      transports: ['websocket', 'polling'],
-      auth: {
-        token: token
-      }
+      transports: ['websocket', 'polling']
     });
     
     newSocket.on('connect', () => {

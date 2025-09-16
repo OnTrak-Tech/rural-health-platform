@@ -96,53 +96,24 @@ app.include_router(consultations.router, prefix="/api/consultations", tags=["con
 app.include_router(files.router, prefix="/api/files", tags=["files"])
 app.include_router(knowledge.router, prefix="/api/knowledge", tags=["knowledge"])
 app.include_router(triage.router, prefix="/api/triage", tags=["triage"])
+app.include_router(sync.router, prefix="/api/sync", tags=["sync"])
 app.include_router(ocr.router, prefix="/api/ocr", tags=["ocr"])
 
 # Socket.IO events
 @sio.event
-async def connect(sid, environ, auth):
-    """Handles new client connections, requires token authentication."""
-    print(f"Connection attempt by {sid}...")
-    if not auth or 'token' not in auth:
-        print(f"Connection attempt by {sid} rejected: Missing token.")
-        raise ConnectionRefusedError('Authentication token missing')
-
-    token = auth.get('token')
-    try:
-        user_info = get_current_user(token) # Assumes get_current_user can be called this way
-        await sio.save_session(sid, {'user_id': user_info.id, 'user_email': user_info.email})
-        print(f"User {user_info.email} with SID {sid} connected.")
-    except Exception as e:
-        print(f"Connection attempt by {sid} rejected: {e}")
-        raise ConnectionRefusedError('Invalid authentication token')
+async def connect(sid, environ):
+    print(f"Socket.IO client connected: {sid}")
 
 @sio.event
 async def join_consultation(sid, data):
-    """User joins a consultation room, requires a valid session."""
-    session = await sio.get_session(sid)
-    if not session or 'user_id' not in session:
-        print(f"Unauthorized attempt to join room from {sid}")
-        return
-
     consultation_id = data.get('consultationId')
     if consultation_id:
         await sio.enter_room(sid, str(consultation_id))
-        print(f"User {session['user_id']} joined room {consultation_id}")
-        # Notify others in the room
-        await sio.emit(
-            'user_joined', 
-            {'message': f"User {session['user_email']} has joined the consultation."}, 
-            room=str(consultation_id)
-        )
+        print(f"User {sid} joined consultation room {consultation_id}")
+        await sio.emit('user_joined', {'message': f'User joined consultation {consultation_id}'}, room=str(consultation_id))
 
 @sio.event
 async def chat_message(sid, data):
-    """Broadcasts a chat message to a consultation room, requires a valid session."""
-    session = await sio.get_session(sid)
-    if not session or 'user_id' not in session:
-        print(f"Unauthorized chat message from {sid}")
-        return
-
     consultation_id = data.get('consultationId')
     if consultation_id:
         print(f"Chat message in consultation {consultation_id}: {data}")
@@ -151,12 +122,6 @@ async def chat_message(sid, data):
 
 @sio.event
 async def video_signal(sid, data):
-    """Relays video signals to a consultation room, requires a valid session."""
-    session = await sio.get_session(sid)
-    if not session or 'user_id' not in session:
-        print(f"Unauthorized video signal from {sid}")
-        return
-
     consultation_id = data.get('consultationId')
     if consultation_id:
         await sio.emit('video-signal', data, room=str(consultation_id), skip_sid=sid)
