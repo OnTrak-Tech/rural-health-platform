@@ -6,11 +6,7 @@ import {
   Button,
   Typography,
   Box,
-  Alert,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem
+  Alert
 } from '@mui/material';
 import { LocalHospital } from '@mui/icons-material';
 import api from '../api';
@@ -19,7 +15,6 @@ function Login({ onLogin }) {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    role: 'patient',
     mfaToken: ''
   });
   const [error, setError] = useState('');
@@ -41,7 +36,6 @@ function Login({ onLogin }) {
       const response = await api.post('/auth/login', {
         email: formData.email,
         password: formData.password,
-        role: formData.role,
         mfaToken: formData.mfaToken || null
       });
 
@@ -112,21 +106,6 @@ function Login({ onLogin }) {
               value={formData.password}
               onChange={handleChange}
             />
-            <FormControl fullWidth margin="normal">
-              <InputLabel id="role-label">Role</InputLabel>
-              <Select
-                labelId="role-label"
-                id="role"
-                name="role"
-                value={formData.role}
-                label="Role"
-                onChange={handleChange}
-              >
-                <MenuItem value="patient">Health Practitioner</MenuItem>
-                <MenuItem value="doctor">Doctor</MenuItem>
-                <MenuItem value="admin">Administrator</MenuItem>
-              </Select>
-            </FormControl>
             <TextField
               margin="normal"
               fullWidth

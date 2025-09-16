@@ -35,7 +35,6 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 class LoginRequest(BaseModel):
     email: str
     password: str
-    role: str
     mfaToken: Optional[str] = None
 
 class RegisterRequest(BaseModel):
@@ -123,7 +122,7 @@ async def create_super_admin(
 @limiter.limit("5/minute")
 async def login(payload: LoginRequest, request: Request, db: Session = Depends(get_db)):
     # Log only non-sensitive data
-    audit_log("LOGIN_ATTEMPT", None, {"email": payload.email, "role": payload.role})
+    audit_log("LOGIN_ATTEMPT", None, {"email": payload.email})
     
     # Find user in database
     user = db.query(User).filter(User.email == payload.email).first()
@@ -135,8 +134,13 @@ async def login(payload: LoginRequest, request: Request, db: Session = Depends(g
     
     # Verify password
     if not pwd_context.verify(payload.password, user.password_hash):
-        audit_log("LOGIN_FAILED", None, {"email": payload.email})
+        audit_log("LOGIN_FAILED", None, {"email": payload.email, "reason": "invalid_password"})
         raise HTTPException(status_code=401, detail="Invalid credentials")
+    
+    # Check if account is active
+    if not user.is_active:
+        audit_log("LOGIN_FAILED", user.id, {"email": payload.email, "reason": "account_inactive"})
+        raise HTTPException(status_code=401, detail="Account is inactive")
     
     # Enforce MFA if enabled
     if user.mfa_secret:
@@ -144,18 +148,18 @@ async def login(payload: LoginRequest, request: Request, db: Session = Depends(g
             audit_log("LOGIN_MFA_REQUIRED", user.id, {"email": payload.email})
             raise HTTPException(status_code=401, detail="MFA required or invalid code")
     
+    # Create JWT token with user's actual role from database
     token_data = {"id": user.id, "email": user.email, "role": user.role}
     jwt_secret = os.getenv("JWT_SECRET")
     if not jwt_secret:
         raise HTTPException(status_code=500, detail="JWT secret not configured")
     token = jwt.encode(token_data, jwt_secret, algorithm="HS256")
     
-    audit_log("LOGIN_SUCCESS", user.id, {"email": payload.email})
+    audit_log("LOGIN_SUCCESS", user.id, {"email": payload.email, "role": user.role})
     
     # Get verification status for doctors
     verification_status = None
     if user.role == "doctor":
-        from ..database_enhanced import DoctorProfile
         doctor_profile = db.query(DoctorProfile).filter(DoctorProfile.user_id == user.id).first()
         verification_status = doctor_profile.verification_status if doctor_profile else "pending"
     

@@ -130,3 +130,33 @@ AttributeError: module 'bcrypt' has no attribute '__about__'
 2025-09-16 03:48:37,693 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-16T03:48:37.693765', 'action': 'LOGIN_SUCCESS', 'user_id': 4, 'details': {'email': 'doctor@ruralhealth.com'}}
 2025-09-16 03:50:35,447 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-16T03:50:35.447200', 'action': 'LOGIN_ATTEMPT', 'user_id': None, 'details': {'email': 'nurse@healthcare.com', 'role': 'patient'}}
 2025-09-16 03:50:35,828 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-16T03:50:35.828362', 'action': 'LOGIN_SUCCESS', 'user_id': 2, 'details': {'email': 'nurse@healthcare.com'}}
+2025-09-16 10:54:00,292 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-16T10:54:00.268166', 'action': 'LOGIN_ATTEMPT', 'user_id': None, 'details': {'email': 'admin@healthcare.com', 'role': 'admin'}}
+2025-09-16 10:54:10,713 - passlib.handlers.bcrypt - WARNING - (trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "/home/ontrak-tech/Work & Happiness/rural-health-platform/python-backend/venv/lib/python3.12/site-packages/passlib/handlers/bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+              ^^^^^^^^^^^^^^^^^
+AttributeError: module 'bcrypt' has no attribute '__about__'
+2025-09-16 10:54:13,360 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-16T10:54:13.359998', 'action': 'LOGIN_SUCCESS', 'user_id': 1, 'details': {'email': 'admin@healthcare.com'}}
+2025-09-16 10:57:18,090 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-16T10:57:18.090546', 'action': 'LOGIN_ATTEMPT', 'user_id': None, 'details': {'email': 'admin@healthcare.com', 'role': 'patient'}}
+2025-09-16 10:57:18,097 - passlib.handlers.bcrypt - WARNING - (trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "/home/ontrak-tech/Work & Happiness/rural-health-platform/python-backend/venv/lib/python3.12/site-packages/passlib/handlers/bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+              ^^^^^^^^^^^^^^^^^
+AttributeError: module 'bcrypt' has no attribute '__about__'
+2025-09-16 10:57:18,500 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-16T10:57:18.499968', 'action': 'LOGIN_SUCCESS', 'user_id': 1, 'details': {'email': 'admin@healthcare.com'}}
+2025-09-16 10:58:05,300 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-16T10:58:05.300688', 'action': 'LOGIN_ATTEMPT', 'user_id': None, 'details': {'email': 'admin@healthcare.com', 'role': 'doctor'}}
+2025-09-16 10:58:05,666 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-16T10:58:05.666032', 'action': 'LOGIN_SUCCESS', 'user_id': 1, 'details': {'email': 'admin@healthcare.com'}}
+2025-09-16 11:10:54,985 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-16T11:10:54.985363', 'action': 'LOGIN_ATTEMPT', 'user_id': None, 'details': {'email': 'nurse@healthcare.com'}}
+2025-09-16 11:10:55,025 - passlib.handlers.bcrypt - WARNING - (trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "/home/ontrak-tech/Work & Happiness/rural-health-platform/python-backend/venv/lib/python3.12/site-packages/passlib/handlers/bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+              ^^^^^^^^^^^^^^^^^
+AttributeError: module 'bcrypt' has no attribute '__about__'
+2025-09-16 11:10:55,416 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-16T11:10:55.416665', 'action': 'LOGIN_SUCCESS', 'user_id': 2, 'details': {'email': 'nurse@healthcare.com', 'role': 'patient'}}
+2025-09-16 11:11:19,551 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-16T11:11:19.551787', 'action': 'LOGIN_ATTEMPT', 'user_id': None, 'details': {'email': 'admin@healthcare.com'}}
+2025-09-16 11:11:19,924 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-16T11:11:19.924670', 'action': 'LOGIN_SUCCESS', 'user_id': 1, 'details': {'email': 'admin@healthcare.com', 'role': 'admin'}}
+2025-09-16 11:12:10,433 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-16T11:12:10.433247', 'action': 'LOGIN_ATTEMPT', 'user_id': None, 'details': {'email': 'doctor@ruralhealth.com'}}
+2025-09-16 11:12:10,794 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-16T11:12:10.794536', 'action': 'LOGIN_SUCCESS', 'user_id': 4, 'details': {'email': 'doctor@ruralhealth.com', 'role': 'doctor'}}

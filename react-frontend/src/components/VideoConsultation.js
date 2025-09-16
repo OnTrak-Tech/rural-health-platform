@@ -4,9 +4,6 @@ import {
   Paper,
   Typography,
   TextField,
-  List,
-  ListItem,
-  ListItemText,
   Box,
   IconButton,
   Alert
@@ -32,6 +29,15 @@ function VideoConsultation({ user }) {
   const remoteVideoRef = useRef(null);
   const [localStream, setLocalStream] = useState(null);
   const localStreamRef = useRef(null);
+  const messagesEndRef = useRef(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   useEffect(() => {
     if (!consultationId) {
@@ -77,7 +83,6 @@ function VideoConsultation({ user }) {
     newSocket.on('connect', () => {
       console.log('Socket connected:', newSocket.id);
       setConnected(true);
-      // Join consultation room after connection
       newSocket.emit('join_consultation', { consultationId });
     });
 
@@ -90,10 +95,13 @@ function VideoConsultation({ user }) {
       console.log('User joined:', data);
     });
 
-    // Listen for chat messages from other users
+    // Only add messages from other users, not our own
     newSocket.on('chat-message', (data) => {
       console.log('Received chat message:', data);
-      setMessages(prev => [...prev, data]);
+      const currentUserName = user.name || user.email;
+      if (data.sender !== currentUserName) {
+        setMessages(prev => [...prev, { ...data, isOwn: false }]);
+      }
     });
 
     newSocket.on('connect_error', (error) => {
@@ -130,10 +138,13 @@ function VideoConsultation({ user }) {
       };
       
       console.log('Sending message:', messageData);
+      
+      // Add message locally as "own" message
+      setMessages(prev => [...prev, { ...messageData, isOwn: true }]);
+      
+      // Send to server (will be received by other users only)
       socket.emit('chat_message', messageData);
       setNewMessage('');
-    } else {
-      console.log('Cannot send message - socket not connected or message empty');
     }
   };
 
@@ -236,23 +247,61 @@ function VideoConsultation({ user }) {
           </Typography>
           
           {/* Messages */}
-          <Box sx={{ flexGrow: 1, overflow: 'auto', mb: 2, border: '1px solid #e0e0e0', borderRadius: 1, p: 1 }}>
+          <Box sx={{ 
+            flexGrow: 1, 
+            overflow: 'auto', 
+            mb: 2, 
+            border: '1px solid #e0e0e0', 
+            borderRadius: 1, 
+            p: 1,
+            display: 'flex',
+            flexDirection: 'column'
+          }}>
             {messages.length === 0 ? (
               <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', mt: 2 }}>
                 No messages yet. Start the conversation!
               </Typography>
             ) : (
-              <List>
-                {messages.map((message, index) => (
-                  <ListItem key={index} sx={{ py: 0.5 }}>
-                    <ListItemText
-                      primary={message.text}
-                      secondary={`${message.sender} - ${message.timestamp}`}
-                    />
-                  </ListItem>
-                ))}
-              </List>
+              messages.map((message, index) => {
+                const isOwn = message.isOwn;
+                return (
+                  <Box
+                    key={index}
+                    sx={{
+                      display: 'flex',
+                      justifyContent: isOwn ? 'flex-end' : 'flex-start',
+                      mb: 1
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        maxWidth: '70%',
+                        p: 1.5,
+                        borderRadius: 2,
+                        backgroundColor: isOwn ? 'primary.main' : 'grey.200',
+                        color: isOwn ? 'white' : 'text.primary'
+                      }}
+                    >
+                      <Typography variant="body2" sx={{ wordBreak: 'break-word' }}>
+                        {message.text}
+                      </Typography>
+                      <Typography 
+                        variant="caption" 
+                        sx={{ 
+                          display: 'block', 
+                          mt: 0.5, 
+                          opacity: 0.8,
+                          fontSize: '0.7rem'
+                        }}
+                      >
+                        {isOwn ? 'You' : message.sender} • {message.timestamp}
+                      </Typography>
+                    </Box>
+                  </Box>
+                );
+              })
             )}
+            <div ref={messagesEndRef} />
           </Box>
 
           {/* Message Input */}
