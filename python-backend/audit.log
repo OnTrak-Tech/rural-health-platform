@@ -160,3 +160,69 @@ AttributeError: module 'bcrypt' has no attribute '__about__'
 2025-09-16 11:11:19,924 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-16T11:11:19.924670', 'action': 'LOGIN_SUCCESS', 'user_id': 1, 'details': {'email': 'admin@healthcare.com', 'role': 'admin'}}
 2025-09-16 11:12:10,433 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-16T11:12:10.433247', 'action': 'LOGIN_ATTEMPT', 'user_id': None, 'details': {'email': 'doctor@ruralhealth.com'}}
 2025-09-16 11:12:10,794 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-16T11:12:10.794536', 'action': 'LOGIN_SUCCESS', 'user_id': 4, 'details': {'email': 'doctor@ruralhealth.com', 'role': 'doctor'}}
+2025-09-16 16:35:17,235 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-16T16:35:17.168867', 'action': 'LOGIN_ATTEMPT', 'user_id': None, 'details': {'email': 'nurse@healthcare.com'}}
+2025-09-16 16:35:31,542 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-16T16:35:31.542428', 'action': 'LOGIN_FAILED', 'user_id': None, 'details': {'email': 'nurse@healthcare.com', 'reason': 'invalid_password'}}
+2025-09-16 16:35:34,513 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-16T16:35:34.513378', 'action': 'LOGIN_ATTEMPT', 'user_id': None, 'details': {'email': 'nurse@healthcare.com'}}
+2025-09-16 16:35:36,378 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-16T16:35:36.378217', 'action': 'LOGIN_FAILED', 'user_id': None, 'details': {'email': 'nurse@healthcare.com', 'reason': 'invalid_password'}}
+2025-09-16 16:36:10,493 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-16T16:36:10.493123', 'action': 'LOGIN_ATTEMPT', 'user_id': None, 'details': {'email': 'nurse@healthcare.com'}}
+2025-09-16 16:36:10,926 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-16T16:36:10.926760', 'action': 'LOGIN_FAILED', 'user_id': None, 'details': {'email': 'nurse@healthcare.com', 'reason': 'invalid_password'}}
+2025-09-16 16:36:14,722 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-16T16:36:14.722860', 'action': 'LOGIN_ATTEMPT', 'user_id': None, 'details': {'email': 'nurse@healthcare.com'}}
+2025-09-16 16:36:16,257 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-16T16:36:16.257555', 'action': 'LOGIN_SUCCESS', 'user_id': 2, 'details': {'email': 'nurse@healthcare.com', 'role': 'patient'}}
+2025-09-16 18:13:37,113 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-16T18:13:37.112970', 'action': 'LOGIN_ATTEMPT', 'user_id': None, 'details': {'email': 'nurse@healthcare.com'}}
+2025-09-16 18:13:38,300 - passlib.handlers.bcrypt - WARNING - (trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "/home/ontrak-tech/Work & Happiness/rural-health-platform/python-backend/venv/lib/python3.12/site-packages/passlib/handlers/bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+              ^^^^^^^^^^^^^^^^^
+AttributeError: module 'bcrypt' has no attribute '__about__'
+2025-09-16 18:13:38,924 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-16T18:13:38.924534', 'action': 'LOGIN_FAILED', 'user_id': None, 'details': {'email': 'nurse@healthcare.com', 'reason': 'invalid_password'}}
+2025-09-16 18:13:42,719 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-16T18:13:42.719221', 'action': 'LOGIN_ATTEMPT', 'user_id': None, 'details': {'email': 'nurse@healthcare.com'}}
+2025-09-16 18:13:43,729 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-16T18:13:43.729302', 'action': 'LOGIN_SUCCESS', 'user_id': 2, 'details': {'email': 'nurse@healthcare.com', 'role': 'patient'}}
+2025-09-16 18:13:50,215 - engineio.server - ERROR - message async handler error
+Traceback (most recent call last):
+  File "/home/ontrak-tech/Work & Happiness/rural-health-platform/python-backend/main.py", line 113, in connect
+    await sio.save_session(sid, {'user_id': user_info.id, 'user_email': user_info.email})
+                                            ^^^^^^^^^^^^
+AttributeError: 'str' object has no attribute 'id'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ontrak-tech/Work & Happiness/rural-health-platform/python-backend/venv/lib/python3.12/site-packages/engineio/async_server.py", line 509, in run_async_handler
+    return await self.handlers[event](*args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ontrak-tech/Work & Happiness/rural-health-platform/python-backend/venv/lib/python3.12/site-packages/socketio/async_server.py", line 667, in _handle_eio_message
+    await self._handle_connect(eio_sid, pkt.namespace, pkt.data)
+  File "/home/ontrak-tech/Work & Happiness/rural-health-platform/python-backend/venv/lib/python3.12/site-packages/socketio/async_server.py", line 541, in _handle_connect
+    success = await self._trigger_event(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ontrak-tech/Work & Happiness/rural-health-platform/python-backend/venv/lib/python3.12/site-packages/socketio/async_server.py", line 631, in _trigger_event
+    ret = await handler(*args)
+          ^^^^^^^^^^^^^^^^^^^^
+  File "/home/ontrak-tech/Work & Happiness/rural-health-platform/python-backend/main.py", line 117, in connect
+    raise ConnectionRefusedError('Invalid authentication token')
+ConnectionRefusedError: Invalid authentication token
+2025-09-16 18:14:17,875 - engineio.server - ERROR - message async handler error
+Traceback (most recent call last):
+  File "/home/ontrak-tech/Work & Happiness/rural-health-platform/python-backend/main.py", line 113, in connect
+    await sio.save_session(sid, {'user_id': user_info.id, 'user_email': user_info.email})
+                                            ^^^^^^^^^^^^
+AttributeError: 'str' object has no attribute 'id'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ontrak-tech/Work & Happiness/rural-health-platform/python-backend/venv/lib/python3.12/site-packages/engineio/async_server.py", line 509, in run_async_handler
+    return await self.handlers[event](*args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ontrak-tech/Work & Happiness/rural-health-platform/python-backend/venv/lib/python3.12/site-packages/socketio/async_server.py", line 667, in _handle_eio_message
+    await self._handle_connect(eio_sid, pkt.namespace, pkt.data)
+  File "/home/ontrak-tech/Work & Happiness/rural-health-platform/python-backend/venv/lib/python3.12/site-packages/socketio/async_server.py", line 541, in _handle_connect
+    success = await self._trigger_event(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ontrak-tech/Work & Happiness/rural-health-platform/python-backend/venv/lib/python3.12/site-packages/socketio/async_server.py", line 631, in _trigger_event
+    ret = await handler(*args)
+          ^^^^^^^^^^^^^^^^^^^^
+  File "/home/ontrak-tech/Work & Happiness/rural-health-platform/python-backend/main.py", line 117, in connect
+    raise ConnectionRefusedError('Invalid authentication token')
+ConnectionRefusedError: Invalid authentication token
