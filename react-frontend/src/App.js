@@ -37,7 +37,7 @@ function App() {
   const [adminPerms, setAdminPerms] = useState([]);
   const [anchorEl, setAnchorEl] = useState(null);
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   useEffect(() => {
     const token = getToken();
@@ -86,7 +86,7 @@ function App() {
       <AppBar position="static">
         <Toolbar>
           <LocalHospital sx={{ mr: 2 }} />
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+          <Typography variant="h6" component="div" sx={{ flexGrow: 1, fontSize: { xs: '1rem', sm: '1.25rem' } }}>
             Rural Healthcare Platform
           </Typography>
 
