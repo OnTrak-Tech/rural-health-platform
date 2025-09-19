@@ -226,3 +226,14 @@ Traceback (most recent call last):
   File "/home/ontrak-tech/Work & Happiness/rural-health-platform/python-backend/main.py", line 117, in connect
     raise ConnectionRefusedError('Invalid authentication token')
 ConnectionRefusedError: Invalid authentication token
+2025-09-18 21:20:30,485 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-18T21:20:30.485543', 'action': 'LOGIN_ATTEMPT', 'user_id': None, 'details': {'email': 'admin@healthcare.com'}}
+2025-09-18 21:20:31,923 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-18T21:20:31.923229', 'action': 'LOGIN_SUCCESS', 'user_id': 1, 'details': {'email': 'admin@healthcare.com', 'role': 'admin'}}
+2025-09-18 21:22:05,043 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-18T21:22:05.043688', 'action': 'DOCTOR_REJECTED', 'user_id': 1, 'details': {'doctor_id': 1, 'reason': 'invalid medical school'}}
+2025-09-19 12:20:28,130 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-19T12:20:28.130329', 'action': 'LOGIN_ATTEMPT', 'user_id': None, 'details': {'email': 'admin@healthcare.com'}}
+2025-09-19 12:20:28,571 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-19T12:20:28.571767', 'action': 'LOGIN_SUCCESS', 'user_id': 1, 'details': {'email': 'admin@healthcare.com', 'role': 'admin'}}
+2025-09-19 13:03:39,133 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-19T13:03:39.133279', 'action': 'LOGIN_ATTEMPT', 'user_id': None, 'details': {'email': 'admin@healthcare.com'}}
+2025-09-19 13:03:39,633 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-19T13:03:39.633878', 'action': 'LOGIN_SUCCESS', 'user_id': 1, 'details': {'email': 'admin@healthcare.com', 'role': 'admin'}}
+2025-09-19 13:21:36,185 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-19T13:21:36.185852', 'action': 'LOGIN_ATTEMPT', 'user_id': None, 'details': {'email': 'admin@healthcare.com'}}
+2025-09-19 13:21:36,709 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-19T13:21:36.709898', 'action': 'LOGIN_SUCCESS', 'user_id': 1, 'details': {'email': 'admin@healthcare.com', 'role': 'admin'}}
+2025-09-19 13:26:30,588 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-19T13:26:30.588428', 'action': 'LOGIN_ATTEMPT', 'user_id': None, 'details': {'email': 'admin@healthcare.com'}}
+2025-09-19 13:26:30,936 - healthcare_audit - INFO - AUDIT: {'timestamp': '2025-09-19T13:26:30.936700', 'action': 'LOGIN_SUCCESS', 'user_id': 1, 'details': {'email': 'admin@healthcare.com', 'role': 'admin'}}

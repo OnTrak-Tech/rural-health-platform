@@ -10,7 +10,7 @@ services:
       - "8000:8000"                       # Expose backend API on host port 8000
     env_file:
       - ./python-backend/.env             # Load environment variables from this file
-    command: uvicorn main:app --host 0.0.0.0 --port 8000
+    command: uvicorn main:socket_app --host 0.0.0.0 --port 8000
       # ↑ Replace `app:app` with your actual module:variable if different
     restart: unless-stopped               # Auto-restart unless manually stopped
 
@@ -21,8 +21,8 @@ services:
     build: ./react-frontend               # Build image from the Dockerfile inside react-frontend/
     ports:
       - "3000:3000"                       # Expose React app on host port 3000
-    environment:
-      - REACT_APP_API_BASE=http://79.125.65.133:8000
+    env_file:
+      - ./react-frontend/.env              # Load environment variables from this file
         # Frontend will call the backend API at this URL
     depends_on:
       - backend                           # Ensure backend starts before frontend

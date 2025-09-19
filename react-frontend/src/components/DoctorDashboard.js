@@ -17,7 +17,9 @@ import {
   TableCell,
   TableContainer,
   TableHead,
-  TableRow
+  TableRow,
+  Tabs,
+  Tab
 } from '@mui/material';
 import { 
   Person, 
@@ -25,9 +27,11 @@ import {
   Assignment, 
   VideoCall,
   TrendingUp,
-  People
+  People,
+  History
 } from '@mui/icons-material';
 import { getToken } from '../authToken';
+import PatientSearch from './PatientSearch';
 
 const API_BASE = (process.env.REACT_APP_API_BASE || 'http://localhost:8000') + '/api';
 
@@ -39,6 +43,7 @@ function DoctorDashboard({ user }) {
     todayAppointments: 0,
     pendingConsultations: 0
   });
+  const [tabValue, setTabValue] = useState(0);
 
   useEffect(() => {
     fetchAppointments();
@@ -102,7 +107,16 @@ function DoctorDashboard({ user }) {
   };
 
   return (
-    <Grid container spacing={3}>
+    <Box sx={{ width: '100%' }}>
+      <Typography variant="h4" gutterBottom>Doctor Dashboard</Typography>
+      
+      <Tabs value={tabValue} onChange={(e, newValue) => setTabValue(newValue)} sx={{ mb: 3 }}>
+        <Tab label="Dashboard" icon={<Schedule />} />
+        <Tab label="Patient History" icon={<History />} />
+      </Tabs>
+
+      {tabValue === 0 && (
+        <Grid container spacing={3}>
       {/* Doctor Profile */}
       <Grid item xs={12} md={4}>
         <Card>
@@ -226,6 +240,12 @@ function DoctorDashboard({ user }) {
         </Paper>
       </Grid>
     </Grid>
+      )}
+
+      {tabValue === 1 && (
+        <PatientSearch user={user} />
+      )}
+    </Box>
   );
 }
 

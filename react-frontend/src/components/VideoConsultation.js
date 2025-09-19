@@ -6,13 +6,16 @@ import {
   TextField,
   Box,
   IconButton,
-  Alert
+  Alert,
+  Tabs,
+  Tab
 } from '@mui/material';
-import { Send, Videocam, VideocamOff, Mic, MicOff } from '@mui/icons-material';
+import { Send, Videocam, VideocamOff, Mic, MicOff, History } from '@mui/icons-material';
 import { useParams, useNavigate } from 'react-router-dom';
 import io from 'socket.io-client';
 import { SOCKET_BASE } from '../config';
 import { getToken } from '../authToken';
+import MedicalHistoryViewer from './MedicalHistoryViewer';
 
 function VideoConsultation({ user }) {
   const { consultationId } = useParams();
@@ -30,6 +33,7 @@ function VideoConsultation({ user }) {
   const [localStream, setLocalStream] = useState(null);
   const localStreamRef = useRef(null);
   const messagesEndRef = useRef(null);
+  const [sidebarTab, setSidebarTab] = useState(0);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -239,24 +243,31 @@ function VideoConsultation({ user }) {
         </Paper>
       </Grid>
 
-      {/* Chat Section */}
+      {/* Chat & Medical History Section */}
       <Grid item xs={12} md={4}>
         <Paper sx={{ p: 2, height: '600px', display: 'flex', flexDirection: 'column' }}>
-          <Typography variant="h6" sx={{ mb: 2 }}>
-            Chat {connected ? '(Connected)' : '(Disconnected)'}
-          </Typography>
+          <Tabs value={sidebarTab} onChange={(e, newValue) => setSidebarTab(newValue)} sx={{ mb: 2 }}>
+            <Tab label="Chat" />
+            {user.role === 'doctor' && <Tab label="Medical History" />}
+          </Tabs>
           
-          {/* Messages */}
-          <Box sx={{ 
-            flexGrow: 1, 
-            overflow: 'auto', 
-            mb: 2, 
-            border: '1px solid #e0e0e0', 
-            borderRadius: 1, 
-            p: 1,
-            display: 'flex',
-            flexDirection: 'column'
-          }}>
+          {sidebarTab === 0 && (
+            <>
+              <Typography variant="h6" sx={{ mb: 2 }}>
+                Chat {connected ? '(Connected)' : '(Disconnected)'}
+              </Typography>
+              
+              {/* Messages */}
+              <Box sx={{ 
+                flexGrow: 1, 
+                overflow: 'auto', 
+                mb: 2, 
+                border: '1px solid #e0e0e0', 
+                borderRadius: 1, 
+                p: 1,
+                display: 'flex',
+                flexDirection: 'column'
+              }}>
             {messages.length === 0 ? (
               <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', mt: 2 }}>
                 No messages yet. Start the conversation!
@@ -301,28 +312,39 @@ function VideoConsultation({ user }) {
                 );
               })
             )}
-            <div ref={messagesEndRef} />
-          </Box>
+                <div ref={messagesEndRef} />
+              </Box>
 
-          {/* Message Input */}
-          <Box sx={{ display: 'flex', gap: 1 }}>
-            <TextField
-              fullWidth
-              size="small"
-              placeholder="Type your message..."
-              value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-              disabled={!connected}
-            />
-            <IconButton 
-              onClick={sendMessage} 
-              color="primary"
-              disabled={!connected || !newMessage.trim()}
-            >
-              <Send />
-            </IconButton>
-          </Box>
+              {/* Message Input */}
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  placeholder="Type your message..."
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+                  disabled={!connected}
+                />
+                <IconButton 
+                  onClick={sendMessage} 
+                  color="primary"
+                  disabled={!connected || !newMessage.trim()}
+                >
+                  <Send />
+                </IconButton>
+              </Box>
+            </>
+          )}
+
+          {sidebarTab === 1 && user.role === 'doctor' && consultation && (
+            <Box sx={{ flexGrow: 1, overflow: 'auto' }}>
+              <MedicalHistoryViewer 
+                consultationId={consultationId}
+                user={user}
+              />
+            </Box>
+          )}
         </Paper>
       </Grid>
     </Grid>

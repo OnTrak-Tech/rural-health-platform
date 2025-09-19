@@ -5,6 +5,7 @@ import {
   IconButton, Collapse
 } from '@mui/material';
 import { ExpandMore, ExpandLess, Download, Visibility } from '@mui/icons-material';
+import AdminLayout from './AdminLayout';
 import api from '../api';
 
 export default function AdminPendingDoctors() {
@@ -71,7 +72,8 @@ export default function AdminPendingDoctors() {
   };
 
   return (
-    <Box sx={{ maxWidth: 1200, mx: 'auto', p: 2 }}>
+    <AdminLayout title="Doctor Verification">
+      <Box sx={{ maxWidth: 1200, mx: 'auto' }}>
       <Paper sx={{ p: 3 }}>
         <Typography variant="h5" gutterBottom>Pending Doctor Verifications</Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
@@ -254,6 +256,7 @@ export default function AdminPendingDoctors() {
           </Button>
         </DialogActions>
       </Dialog>
-    </Box>
+      </Box>
+    </AdminLayout>
   );
 }

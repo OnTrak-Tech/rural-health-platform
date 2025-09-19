@@ -19,6 +19,7 @@ import {
   Divider
 } from '@mui/material';
 import { CloudUpload, Security, VerifiedUser } from '@mui/icons-material';
+import AdminLayout from './AdminLayout';
 import api from '../api';
 
 const SPECIALIZATIONS = [
@@ -467,7 +468,8 @@ function AdminDoctorRegistration({ user }) {
   };
 
   return (
-    <Box sx={{ maxWidth: 1000, mx: 'auto', p: 3 }}>
+    <AdminLayout title="Register Doctor">
+      <Box sx={{ maxWidth: 1000, mx: 'auto' }}>
       <Paper sx={{ p: 4 }}>
         <Typography variant="h4" gutterBottom align="center">
           <Security sx={{ mr: 2, verticalAlign: 'middle' }} />
@@ -521,7 +523,8 @@ function AdminDoctorRegistration({ user }) {
           )}
         </Box>
       </Paper>
-    </Box>
+      </Box>
+    </AdminLayout>
   );
 }
 

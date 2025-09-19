@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Routes, Route, Link, Navigate } from 'react-router-dom';
+import { Routes, Route, Link, Navigate, useLocation } from 'react-router-dom';
 import {
   AppBar,
   Toolbar,
@@ -38,6 +38,10 @@ function App() {
   const [anchorEl, setAnchorEl] = useState(null);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const location = useLocation();
+  
+  // Hide main navbar on admin routes
+  const isAdminRoute = location.pathname.startsWith('/admin') || (location.pathname === '/dashboard' && user?.role === 'admin');
 
   useEffect(() => {
     const token = getToken();
@@ -83,115 +87,117 @@ function App() {
 
   return (
     <Box sx={{ flexGrow: 1 }}>
-      <AppBar position="static">
-        <Toolbar>
-          <LocalHospital sx={{ mr: 2 }} />
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1, fontSize: { xs: '1rem', sm: '1.25rem' } }}>
-            Rural Healthcare Platform
-          </Typography>
+      {!isAdminRoute && (
+        <AppBar position="static">
+          <Toolbar>
+            <LocalHospital sx={{ mr: 2 }} />
+            <Typography variant="h6" component="div" sx={{ flexGrow: 1, fontSize: { xs: '1rem', sm: '1.25rem' } }}>
+              Rural Healthcare Platform
+            </Typography>
 
-          {user && (
-            <>
-              {isMobile ? (
-                <>
-                  <IconButton
-                    color="inherit"
-                    onClick={handleMenuOpen}
-                    edge="end"
-                  >
-                    <MenuIcon />
-                  </IconButton>
-                  <Menu
-                    anchorEl={anchorEl}
-                    open={Boolean(anchorEl)}
-                    onClose={handleMenuClose}
-                    anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-                    transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-                  >
-                    <MenuItem component={Link} to="/dashboard" onClick={handleMenuClose}>
-                      Dashboard
-                    </MenuItem>
+            {user && (
+              <>
+                {isMobile ? (
+                  <>
+                    <IconButton
+                      color="inherit"
+                      onClick={handleMenuOpen}
+                      edge="end"
+                    >
+                      <MenuIcon />
+                    </IconButton>
+                    <Menu
+                      anchorEl={anchorEl}
+                      open={Boolean(anchorEl)}
+                      onClose={handleMenuClose}
+                      anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                      transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+                    >
+                      <MenuItem component={Link} to="/dashboard" onClick={handleMenuClose}>
+                        Dashboard
+                      </MenuItem>
+                      {user.role === 'admin' && (
+                        <>
+                          <MenuItem component={Link} to="/admin/register-patient" onClick={handleMenuClose}>
+                            Register Health Practitioner
+                          </MenuItem>
+                          {adminPerms.includes('system_admin') && (
+                            <>
+                              <MenuItem component={Link} to="/admin/register-doctor" onClick={handleMenuClose}>
+                                Register Doctor
+                              </MenuItem>
+                              <MenuItem component={Link} to="/admin/pending-doctors" onClick={handleMenuClose}>
+                                Pending Doctors
+                              </MenuItem>
+                            </>
+                          )}
+                        </>
+                      )}
+                      {user.role !== 'admin' && (
+                        <>
+                          <MenuItem component={Link} to="/consultations" onClick={handleMenuClose}>
+                            My Consultations
+                          </MenuItem>
+                          <MenuItem component={Link} to="/triage" onClick={handleMenuClose}>
+                            Triage
+                          </MenuItem>
+                          <MenuItem component={Link} to="/book" onClick={handleMenuClose}>
+                            Book
+                          </MenuItem>
+                        </>
+                      )}
+                      <MenuItem onClick={handleLogout}>
+                        Logout ({user.email})
+                      </MenuItem>
+                    </Menu>
+                  </>
+                ) : (
+                  <>
                     {user.role === 'admin' && (
                       <>
-                        <MenuItem component={Link} to="/admin/register-patient" onClick={handleMenuClose}>
+                        <Button color="inherit" component={Link} to="/admin/register-patient">
                           Register Health Practitioner
-                        </MenuItem>
+                        </Button>
                         {adminPerms.includes('system_admin') && (
                           <>
-                            <MenuItem component={Link} to="/admin/register-doctor" onClick={handleMenuClose}>
+                            <Button color="inherit" component={Link} to="/admin/register-doctor">
                               Register Doctor
-                            </MenuItem>
-                            <MenuItem component={Link} to="/admin/pending-doctors" onClick={handleMenuClose}>
+                            </Button>
+                            <Button color="inherit" component={Link} to="/admin/pending-doctors">
                               Pending Doctors
-                            </MenuItem>
+                            </Button>
                           </>
                         )}
                       </>
                     )}
+                    <Button color="inherit" component={Link} to="/dashboard">
+                      Dashboard
+                    </Button>
                     {user.role !== 'admin' && (
                       <>
-                        <MenuItem component={Link} to="/consultations" onClick={handleMenuClose}>
+                        <Button color="inherit" component={Link} to="/consultations">
                           My Consultations
-                        </MenuItem>
-                        <MenuItem component={Link} to="/triage" onClick={handleMenuClose}>
+                        </Button>
+                        <Button color="inherit" component={Link} to="/triage">
                           Triage
-                        </MenuItem>
-                        <MenuItem component={Link} to="/book" onClick={handleMenuClose}>
+                        </Button>
+                        <Button color="inherit" component={Link} to="/book">
                           Book
-                        </MenuItem>
+                        </Button>
                       </>
                     )}
-                    <MenuItem onClick={handleLogout}>
+                    <Button color="inherit" onClick={handleLogout}>
                       Logout ({user.email})
-                    </MenuItem>
-                  </Menu>
-                </>
-              ) : (
-                <>
-                  {user.role === 'admin' && (
-                    <>
-                      <Button color="inherit" component={Link} to="/admin/register-patient">
-                        Register Health Practitioner
-                      </Button>
-                      {adminPerms.includes('system_admin') && (
-                        <>
-                          <Button color="inherit" component={Link} to="/admin/register-doctor">
-                            Register Doctor
-                          </Button>
-                          <Button color="inherit" component={Link} to="/admin/pending-doctors">
-                            Pending Doctors
-                          </Button>
-                        </>
-                      )}
-                    </>
-                  )}
-                  <Button color="inherit" component={Link} to="/dashboard">
-                    Dashboard
-                  </Button>
-                  {user.role !== 'admin' && (
-                    <>
-                      <Button color="inherit" component={Link} to="/consultations">
-                        My Consultations
-                      </Button>
-                      <Button color="inherit" component={Link} to="/triage">
-                        Triage
-                      </Button>
-                      <Button color="inherit" component={Link} to="/book">
-                        Book
-                      </Button>
-                    </>
-                  )}
-                  <Button color="inherit" onClick={handleLogout}>
-                    Logout ({user.email})
-                  </Button>
-                </>
-              )}
-            </>
-          )}
-        </Toolbar>
+                    </Button>
+                  </>
+                )}
+              </>
+            )}
+          </Toolbar>
         </AppBar>
+      )}
 
-        <Container maxWidth="xl" sx={{ mt: 4 }}>
+      <Container maxWidth={isAdminRoute ? false : "xl"} sx={{ mt: isAdminRoute ? 0 : 4, p: isAdminRoute ? 0 : undefined }}>
           <OfflineBanner />
           <Routes>
             <Route path="/login" element={!user ? <Login onLogin={handleLogin} /> : <Navigate to="/dashboard" />} />

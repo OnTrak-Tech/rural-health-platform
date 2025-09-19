@@ -14,6 +14,7 @@ from app.routes import auth, patients, doctors, consultations, files, knowledge
 from app.routes import admin  # New admin routes
 from app.routes import triage, sync  # New features
 from app.routes import ocr  # OCR functionality
+from app.routes import medical_history  # Medical history access
 from app.middleware.auth_middleware import get_current_user
 from app.database_enhanced import create_tables  # Enhanced database
 
@@ -98,6 +99,7 @@ app.include_router(knowledge.router, prefix="/api/knowledge", tags=["knowledge"]
 app.include_router(triage.router, prefix="/api/triage", tags=["triage"])
 app.include_router(sync.router, prefix="/api/sync", tags=["sync"])
 app.include_router(ocr.router, prefix="/api/ocr", tags=["ocr"])
+app.include_router(medical_history.router, prefix="/api/medical-history", tags=["medical-history"])
 
 # Socket.IO events
 @sio.event

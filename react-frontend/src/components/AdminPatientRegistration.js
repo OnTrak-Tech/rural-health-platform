@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Box, Paper, TextField, Button, Typography, Alert, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
+import AdminLayout from './AdminLayout';
 import api from '../api';
 
 const PRACTITIONER_TYPES = [
@@ -51,9 +52,10 @@ export default function AdminPatientRegistration() {
   };
 
   return (
-    <Box sx={{ maxWidth: 600, mx: 'auto', p: 2 }}>
-      <Paper sx={{ p: 3 }}>
-        <Typography variant="h5" gutterBottom>Admin: Register Health Practitioner</Typography>
+    <AdminLayout title="Register Health Practitioner">
+      <Box sx={{ maxWidth: 600, mx: 'auto' }}>
+        <Paper sx={{ p: 3 }}>
+          <Typography variant="h5" gutterBottom>Register Health Practitioner</Typography>
         {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
         {success && <Alert severity="success" sx={{ mb: 2 }}>{success}</Alert>}
         <Box component="form" onSubmit={submit}>
@@ -78,7 +80,8 @@ export default function AdminPatientRegistration() {
           </Button>
         </Box>
       </Paper>
-    </Box>
+      </Box>
+    </AdminLayout>
   );
 }
 

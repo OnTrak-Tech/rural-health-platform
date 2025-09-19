@@ -121,13 +121,20 @@ class MedicalFile(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     patient_id = Column(Integer, ForeignKey("patients.id"))
+    consultation_id = Column(Integer, ForeignKey("consultations.id"), nullable=True)
     filename = Column(String(255))
     original_name = Column(String(255))
     file_type = Column(String(10))
     file_size = Column(Integer)
     uploaded_by = Column(Integer, ForeignKey("users.id"))
     ocr_text = Column(Text)
+    description = Column(Text)
+    category = Column(String(50))  # lab_results, x_ray, prescription, report
     created_at = Column(DateTime, default=datetime.utcnow)
+    
+    patient = relationship("Patient")
+    consultation = relationship("Consultation")
+    uploader = relationship("User", foreign_keys=[uploaded_by])
 
 class VerificationDocument(Base):
     __tablename__ = "verification_documents"
@@ -155,6 +162,21 @@ class Invite(Base):
     used = Column(Boolean, default=False)
     created_by = Column(Integer, ForeignKey("users.id"))
     created_at = Column(DateTime, default=datetime.utcnow)
+
+class MedicalFileAccess(Base):
+    __tablename__ = "medical_file_access"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    medical_file_id = Column(Integer, ForeignKey("medical_files.id"))
+    doctor_id = Column(Integer, ForeignKey("users.id"))
+    consultation_id = Column(Integer, ForeignKey("consultations.id"))
+    access_type = Column(String(20))  # view, download
+    ip_address = Column(String(45))
+    accessed_at = Column(DateTime, default=datetime.utcnow)
+    
+    medical_file = relationship("MedicalFile")
+    doctor = relationship("User")
+    consultation = relationship("Consultation")
 
 class AuditLog(Base):
     __tablename__ = "audit_logs"
